@@ -1,6 +1,8 @@
 package it.gov.acn;
 
 import it.gov.acn.config.TransactionalOutboxProperties;
+import it.gov.acn.outboxprocessor.OutboxProcessor;
+import it.gov.acn.outboxprocessor.ProcessOutboxCommand;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;
@@ -17,9 +19,7 @@ public class TransactionalOutboxScheduler {
     }
 
     public void schedule(){
-        OutboxProcessorConfiguration outboxProcessorConfiguration = new OutboxProcessorConfiguration();
-        outboxProcessorConfiguration.setTestPhrase("Here for the glory of the Lord");
-        OutboxProcessor outboxProcessor = new OutboxProcessor(outboxProcessorConfiguration);
+        OutboxProcessor outboxProcessor = new OutboxProcessor(new ProcessOutboxCommand("Forgive me father for I have sinned"));
 
         taskScheduler.scheduleWithFixedDelay(outboxProcessor::process,
                 Duration.of(properties.getFixedDelay(), ChronoUnit.MILLIS));
