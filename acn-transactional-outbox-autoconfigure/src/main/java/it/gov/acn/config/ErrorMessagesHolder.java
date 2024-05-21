@@ -14,10 +14,4 @@ public class ErrorMessagesHolder {
     public static List<String> getErrorMessages() {
         return errorMessages;
     }
-
-    public static class ErrorMessageReport {
-        ErrorMessageReport(String errorMessage){
-            addErrorMessage(errorMessage);
-        }
-    }
 }

@@ -36,16 +36,10 @@ public class TransactionalOutboxAutoconfiguration {
             PropertiesValidCondition.class,
             OutboxEnabledCondition.class
     })
-    @ConditionalOnBean(DataSource.class)
-    public ValidContextBulkhead validContextBulkhead(DataSource dataSource){
+    public ValidContextBulkhead validContextBulkhead(){
         return new ValidContextBulkhead();
     }
 
-    @Bean(name = "dataSourceNotFoundErrorMessageReport")
-    @ConditionalOnMissingBean(DataSource.class)
-    public ErrorMessagesHolder.ErrorMessageReport dataSourceNotFoundErrorMessageReport(){
-        return new ErrorMessagesHolder.ErrorMessageReport("No DataSource found in context");
-    }
 
 
     @Bean
@@ -77,7 +71,7 @@ public class TransactionalOutboxAutoconfiguration {
     @PostConstruct
     public void logContextStatus(){
         if(ErrorMessagesHolder.getErrorMessages().isEmpty()){
-            logger.info("Transactional Outbox Configuration Details: {}",transactionalOutboxProperties);
+            logger.debug("Transactional Outbox Configuration Details: {}",transactionalOutboxProperties);
         }else{
             logger.error("Your application context is not valid: "+
                      String.join(", ",ErrorMessagesHolder.getErrorMessages()));
