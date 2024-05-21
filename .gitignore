@@ -2,3 +2,4 @@
 /acn-transactional-outbox-autoconfigure/target/
 /acn-transactional-outbox-core/target/
 /acn-transactional-outbox-starter/target/
+/.idea/

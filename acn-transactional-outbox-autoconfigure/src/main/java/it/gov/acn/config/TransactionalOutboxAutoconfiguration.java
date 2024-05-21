@@ -1,12 +1,8 @@
 package it.gov.acn.config;
 
 import it.gov.acn.TransactionalOutboxScheduler;
-import it.gov.acn.condition.ContextValidCondition;
 import it.gov.acn.condition.OutboxEnabledCondition;
 import it.gov.acn.condition.PropertiesValidCondition;
-import it.gov.acn.context.ContextBulkhead;
-import it.gov.acn.context.ContextUtils;
-import it.gov.acn.context.InvalidContextBulkhead;
 import it.gov.acn.context.ValidContextBulkhead;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -17,7 +13,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -42,14 +37,8 @@ public class TransactionalOutboxAutoconfiguration {
             OutboxEnabledCondition.class
     })
     @ConditionalOnBean(DataSource.class)
-    public ContextBulkhead contextBulkhead(DataSource dataSource){
-        // the starter requires a Postgres DataSource bean to be present in context
-        if(ContextUtils.isPostgresDatasource(dataSource)){
-            return new ValidContextBulkhead();
-        }else{
-            ErrorMessagesHolder.addErrorMessage("No Postgres DataSource found in context");
-            return new InvalidContextBulkhead();
-        }
+    public ValidContextBulkhead validContextBulkhead(DataSource dataSource){
+        return new ValidContextBulkhead();
     }
 
     @Bean(name = "dataSourceNotFoundErrorMessageReport")
@@ -60,8 +49,7 @@ public class TransactionalOutboxAutoconfiguration {
 
 
     @Bean
-    @DependsOn("contextBulkhead")
-    @Conditional(ContextValidCondition.class)
+    @ConditionalOnBean(ValidContextBulkhead.class)
     @ConditionalOnMissingBean(TaskScheduler.class) // Create a TaskScheduler bean only if there is none in the context
     public TaskScheduler threadPoolTaskScheduler(){
         ThreadPoolTaskScheduler threadPoolTaskScheduler
@@ -74,15 +62,17 @@ public class TransactionalOutboxAutoconfiguration {
 
 
     @Bean
-    @ConditionalOnBean(TaskScheduler.class)
-    @DependsOn("contextBulkhead")
-    @Conditional(ContextValidCondition.class)
+    @ConditionalOnBean({
+            ValidContextBulkhead.class,
+            TaskScheduler.class
+    })
     public TransactionalOutboxScheduler transactionalOutboxScheduler(
             TransactionalOutboxProperties transactionalOutboxProperties,
             TaskScheduler taskScheduler
     ){
         return new TransactionalOutboxScheduler(transactionalOutboxProperties, taskScheduler);
     }
+
 
     @PostConstruct
     public void logContextStatus(){

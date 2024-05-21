@@ -19,7 +19,7 @@ public class OutboxStarterAutoconfigurationTests {
         ContextRunnerDecorator.create(contextRunner)
                 .withEnabled(true)
                 .withFixedDelay(3000)
-                .withPostgres()
+                .withDatasource(true)
                 .claim()
                 .run(context -> {
                     assertThat(context).hasSingleBean(TaskScheduler.class);
@@ -33,7 +33,7 @@ public class OutboxStarterAutoconfigurationTests {
         ContextRunnerDecorator.create(contextRunner)
                 .withUserConfiguration(TestConfiguration.class)
                  .withEnabled(true)
-                .withPostgres()
+                .withDatasource(true)
                 .claim()
                 .run(context -> {
                     assertThat(context).hasSingleBean(TaskScheduler.class);
@@ -45,7 +45,7 @@ public class OutboxStarterAutoconfigurationTests {
     void should_provide_transactionalOutboxScheduler() {
         ContextRunnerDecorator.create(contextRunner)
                 .withEnabled(true)
-                .withPostgres()
+                .withDatasource(true)
                 .claim()
                 .run(context -> {
                     assertThat(context).hasSingleBean(TransactionalOutboxScheduler.class);
@@ -68,7 +68,7 @@ public class OutboxStarterAutoconfigurationTests {
         ContextRunnerDecorator.create(contextRunner)
                 .withEnabled(true)
                 .withFixedDelay(-1)
-                .withPostgres()
+                .withDatasource(true)
                 .claim()
                 .run(context -> {
                     assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
@@ -77,7 +77,7 @@ public class OutboxStarterAutoconfigurationTests {
     }
 
     @Test
-    void should_not_provide_transactionalOutboxScheduler_when_postgres_datasource_not_present() {
+    void should_not_provide_transactionalOutboxScheduler_when_datasource_is_not_present() {
         ContextRunnerDecorator.create(contextRunner)
                 .withEnabled(true)
                 .withFixedDelay(3000)
@@ -89,10 +89,23 @@ public class OutboxStarterAutoconfigurationTests {
     }
 
     @Test
+    void should_not_provide_transactionalOutboxScheduler_when_datasource_is_present_but_not_postgres() {
+        ContextRunnerDecorator.create(contextRunner)
+                .withEnabled(true)
+                .withFixedDelay(3000)
+                .withDatasource(false)
+                .claim()
+                .run(context -> {
+                    assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
+                    assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
+                });
+    }
+
+    @Test
     void should_not_provide_transactionalOutboxScheduler_when_scheduler_not_enabled() {
         ContextRunnerDecorator.create(contextRunner)
                 .withEnabled(false)
-                .withPostgres()
+                .withDatasource(true)
                 .claim()
                 .run(context -> {
                     assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);

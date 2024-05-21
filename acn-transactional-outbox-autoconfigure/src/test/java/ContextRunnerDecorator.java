@@ -31,14 +31,14 @@ public class ContextRunnerDecorator {
         return this;
     }
 
-    public ContextRunnerDecorator withPostgres() {
+    public ContextRunnerDecorator withDatasource(boolean postgres) {
         DataSource postgresDataSource = Mockito.mock(DataSource.class);
         Connection connection = Mockito.mock(Connection.class);
         DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
 
         try {
             Mockito.when(connection.getMetaData()).thenReturn(metaData);
-            Mockito.when(metaData.getURL()).thenReturn("jdbc:postgresql://localhost:5432/test");
+            Mockito.when(metaData.getURL()).thenReturn("jdbc:" +(postgres?"postgresql":"mysql")+"://localhost:5432/test");
             Mockito.when(postgresDataSource.getConnection()).thenReturn(connection);
         } catch (SQLException e) {
             throw new RuntimeException(e);

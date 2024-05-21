@@ -1,4 +1,4 @@
 package it.gov.acn.context;
 
-public class ValidContextBulkhead implements ContextBulkhead{
+public class ValidContextBulkhead {
 }
