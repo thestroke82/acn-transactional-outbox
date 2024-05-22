@@ -71,9 +71,9 @@ public class TransactionalOutboxAutoconfiguration {
     @PostConstruct
     public void logContextStatus(){
         if(ErrorMessagesHolder.getErrorMessages().isEmpty()){
-            logger.debug("Transactional Outbox Configuration Details: {}",transactionalOutboxProperties);
+            logger.debug("Transactional Outbox Starter configuration details: {}",transactionalOutboxProperties);
         }else{
-            logger.error("Your application context is not valid: "+
+            logger.error("Transactional Outbox Starter configuration is not valid: "+
                      String.join(", ",ErrorMessagesHolder.getErrorMessages()));
         }
     }

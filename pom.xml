@@ -11,6 +11,7 @@
         <module>acn-transactional-outbox-starter</module>
         <module>acn-transactional-outbox-autoconfigure</module>
         <module>acn-transactional-outbox-core</module>
+      <module>acn-transactional-outbox-example-app</module>
     </modules>
     <name>acn-transactional-outbox</name>
     <packaging>pom</packaging>

@@ -1,0 +1,5 @@
+spring:
+  main:
+    keep-alive: true
+  application:
+    name: dontcare

@@ -2,6 +2,7 @@
 /acn-transactional-outbox-autoconfigure/target/
 /acn-transactional-outbox-core/target/
 /acn-transactional-outbox-starter/target/
+/acn-transactional-outbox-example-app/target/
 /.idea/
 /acn-transactional-outbox.iml
 /acn-transactional-outbox-autoconfigure.iml
