@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import org.springframework.transaction.PlatformTransactionManager;
 
 public class ContextRunnerDecorator {
     private ApplicationContextRunner contextRunner;
@@ -45,6 +46,13 @@ public class ContextRunnerDecorator {
         }
 
         this.contextRunner = this.contextRunner.withBean("dataSource", DataSource.class, () -> postgresDataSource);
+        return this;
+    }
+
+    public ContextRunnerDecorator withTransactionManager() {
+        PlatformTransactionManager transactionManager = Mockito.mock(PlatformTransactionManager.class);
+
+        this.contextRunner = this.contextRunner.withBean("transactionManager", PlatformTransactionManager.class, () -> transactionManager);
         return this;
     }
 

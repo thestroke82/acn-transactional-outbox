@@ -1,15 +1,14 @@
 package it.gov.acn;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 
 @SpringBootTest(properties = {
     "acn.outbox.scheduler.enabled=true",
-    "acn.outbox.scheduler.fixed-delay=1500",
+    "acn.outbox.scheduler.fixed-delay=3000",
 })
 public class JustAnotherTest extends PostgresTestContext {
+
 
   @Test
   void test() throws InterruptedException {
