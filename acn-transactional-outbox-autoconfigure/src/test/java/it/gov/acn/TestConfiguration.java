@@ -1,3 +1,5 @@
+package it.gov.acn;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;

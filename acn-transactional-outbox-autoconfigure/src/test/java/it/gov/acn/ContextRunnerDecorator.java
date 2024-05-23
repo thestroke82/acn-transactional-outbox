@@ -1,3 +1,5 @@
+package it.gov.acn;
+
 import it.gov.acn.config.TransactionalOutboxProperties;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;

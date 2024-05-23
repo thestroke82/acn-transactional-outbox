@@ -7,6 +7,7 @@ import it.gov.acn.config.ErrorMessagesHolder.ErrorReporter;
 import it.gov.acn.context.InvalidContextBulkhead;
 import it.gov.acn.context.ValidContextBulkhead;
 import it.gov.acn.context.ValidPropertiesBulkhead;
+import it.gov.acn.etc.BeanGarbageCollector;
 import it.gov.acn.outboxprocessor.model.DataProvider;
 import it.gov.acn.providers.JdbcDataProvider;
 import jakarta.annotation.PostConstruct;
@@ -22,6 +23,7 @@ import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.TaskScheduler;
@@ -60,7 +62,7 @@ public class TransactionalOutboxAutoconfiguration {
             OutboxEnabledCondition.class
     })
     public ValidPropertiesBulkhead validPropertiesBulkhead(){
-        return new ValidPropertiesBulkhead();
+        return BeanGarbageCollector.registerTemporaryBean(new ValidPropertiesBulkhead());
     }
 
     // this is a conditional bean that will be created only if the context is adequate
@@ -71,7 +73,7 @@ public class TransactionalOutboxAutoconfiguration {
         PlatformTransactionManager.class
     })
     public ValidContextBulkhead validContextBulkhead(){
-        return new ValidContextBulkhead();
+        return BeanGarbageCollector.registerTemporaryBean(new ValidContextBulkhead());
     }
 
     // It's ugly, I know, but it's the only way to report errors about missing beans
@@ -81,7 +83,8 @@ public class TransactionalOutboxAutoconfiguration {
     @ConditionalOnBean(ValidPropertiesBulkhead.class) // should log context problems only if the properties are valid
     @ConditionalOnMissingBean(DataSource.class)
     public ErrorReporter errorReporterDatasource(){
-        return new ErrorReporter("DataSource is missing in context");
+        return BeanGarbageCollector.registerTemporaryBean(
+            new ErrorReporter("DataSource is missing in context"));
     }
 
     // if the PlatformTransactionManager is missing, an error will be reported
@@ -89,7 +92,8 @@ public class TransactionalOutboxAutoconfiguration {
     @ConditionalOnMissingBean( PlatformTransactionManager.class)
     @ConditionalOnBean(ValidPropertiesBulkhead.class) // should log context problems only if the properties are valid
     public ErrorReporter errorReporterTransactionManager(){
-        return new ErrorReporter("TransactionManager is missing in context");
+        return BeanGarbageCollector.registerTemporaryBean(
+            new ErrorReporter("TransactionManager is missing in context"));
     }
 
     // At this juncture, there are two possible scenarios:
@@ -108,7 +112,7 @@ public class TransactionalOutboxAutoconfiguration {
         threadPoolTaskScheduler.setPoolSize(5);
         threadPoolTaskScheduler.setThreadNamePrefix(
                 "ThreadPoolTaskScheduler");
-        return threadPoolTaskScheduler;
+        return BeanGarbageCollector.registerCoreBean(threadPoolTaskScheduler);
     }
 
 
@@ -120,10 +124,14 @@ public class TransactionalOutboxAutoconfiguration {
     @ConditionalOnBean(ValidContextBulkhead.class)
     public DataProvider dataProvider(DataSource dataSource){
         // TODO: Factory method to create a DataProvider
-        return new JdbcDataProvider();
+        return BeanGarbageCollector.registerCoreBean(new JdbcDataProvider());
     }
 
 
+    // At this point, the last two beans are created only if the conditions are met or not
+    // In the first case, the outbox processor will be scheduled and the behaviour started
+    // In the second case, the errors will be reported and the behaviour will not start
+    // Either are terminal points of the Conditional chain implemented in this configuration
 
     // That's the main bean that will be created only if the conditions are met
     // Note that ValidContextBulkhead it's superfluous here, but I'll keep it for clarity
@@ -136,20 +144,24 @@ public class TransactionalOutboxAutoconfiguration {
     public TransactionalOutboxScheduler transactionalOutboxScheduler(
             TransactionalOutboxProperties transactionalOutboxProperties,
             TaskScheduler taskScheduler,
-            DataProvider dataProvider
+            DataProvider dataProvider,
+            ApplicationContext applicationContext
     ){
         logger.debug("Transactional Outbox Starter configuration details: {}",transactionalOutboxProperties);
+        BeanGarbageCollector.destroyTemporaryBeans(applicationContext);
         return new TransactionalOutboxScheduler(transactionalOutboxProperties, taskScheduler, dataProvider);
     }
 
     // this is used to report errors if the conditions are not met
     @Bean
     @ConditionalOnMissingBean(ValidContextBulkhead.class)
-    public InvalidContextBulkhead invalidContextBulkhead(){
+    public InvalidContextBulkhead invalidContextBulkhead(ApplicationContext applicationContext){
         if(!ErrorMessagesHolder.getErrorMessages().isEmpty()){
             logger.error("Transactional Outbox Starter configuration is not valid: "+
                 String.join(", ",ErrorMessagesHolder.getErrorMessages()));
         }
-        return new InvalidContextBulkhead();
+        BeanGarbageCollector.destroyTemporaryBeans(applicationContext);
+        BeanGarbageCollector.destroyCoreBeans(applicationContext);
+        return null;
     }
 }
