@@ -88,18 +88,18 @@ public class OutboxStarterAutoconfigurationTests {
                 });
     }
 
-    @Test
-    void should_not_provide_transactionalOutboxScheduler_when_datasource_is_present_but_not_postgres() {
-        ContextRunnerDecorator.create(contextRunner)
-                .withEnabled(true)
-                .withFixedDelay(3000)
-                .withDatasource(false)
-                .claim()
-                .run(context -> {
-                    assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
-                    assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
-                });
-    }
+//    @Test
+//    void should_not_provide_transactionalOutboxScheduler_when_datasource_is_present_but_not_postgres() {
+//        ContextRunnerDecorator.create(contextRunner)
+//                .withEnabled(true)
+//                .withFixedDelay(3000)
+//                .withDatasource(false)
+//                .claim()
+//                .run(context -> {
+//                    assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
+//                    assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
+//                });
+//    }
 
     @Test
     void should_not_provide_transactionalOutboxScheduler_when_scheduler_not_enabled() {

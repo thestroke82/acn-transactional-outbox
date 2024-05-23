@@ -14,4 +14,10 @@ public class ErrorMessagesHolder {
     public static List<String> getErrorMessages() {
         return errorMessages;
     }
+
+    public static class ErrorReporter {
+        public ErrorReporter(String errorMessage) {
+            ErrorMessagesHolder.addErrorMessage(errorMessage);
+        }
+    }
 }
