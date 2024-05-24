@@ -3,8 +3,13 @@ package it.gov.acn.config;
 import it.gov.acn.ContextRunnerDecorator;
 import it.gov.acn.TestConfiguration;
 import it.gov.acn.TransactionalOutboxScheduler;
+import it.gov.acn.etc.Utils;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.scheduling.TaskScheduler;
@@ -12,17 +17,37 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 public class OutboxStarterAutoconfigurationTests {
 
-  private ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-      .withConfiguration(AutoConfigurations.of(TransactionalOutboxAutoconfiguration.class));
+  private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+      .withConfiguration(AutoConfigurations.of(BulkheadAutoConfiguration.class,TransactionalOutboxAutoconfiguration.class));
+  private static MockedStatic<Utils> mockedStatic;
 
+  @BeforeAll
+  static void setUp() {
+    // Initialize the MockedStatic instance
+    mockedStatic = Mockito.mockStatic(Utils.class);
+    // Define the behavior of the static method
+    mockedStatic
+        .when(()->Utils.doesTableExist(Mockito.any(), Mockito.any()))
+        .thenReturn(true);
+    // leave the rest of the methods to their default behavior
+    mockedStatic.when(()->Utils.isPostgresDatasource(Mockito.any())).thenCallRealMethod();
+    mockedStatic.when(()->Utils.isBeanPresentInContext(Mockito.any(),Mockito.any())).thenCallRealMethod();
+  }
 
+  @AfterAll
+  static void tearDown() {
+    // Close the MockedStatic instance
+    if (mockedStatic != null) {
+      mockedStatic.close();
+    }
+  }
 
   @Test
   void should_provide_ThreadPoolTaskScheduler_when_no_other_TaskScheduler_present() {
     ContextRunnerDecorator.create(contextRunner)
         .withEnabled(true)
         .withFixedDelay(3000)
-        .withDatasource(true)
+        .withMockDatasource()
         .withTransactionManager()
         .claim()
         .run(context -> {
@@ -37,7 +62,7 @@ public class OutboxStarterAutoconfigurationTests {
     ContextRunnerDecorator.create(contextRunner)
         .withUserConfiguration(TestConfiguration.class)
         .withEnabled(true)
-        .withDatasource(true)
+        .withMockDatasource()
         .withTransactionManager()
         .claim()
         .run(context -> {
@@ -50,7 +75,7 @@ public class OutboxStarterAutoconfigurationTests {
   void should_provide_transactionalOutboxScheduler() {
     ContextRunnerDecorator.create(contextRunner)
         .withEnabled(true)
-        .withDatasource(true)
+        .withMockDatasource()
         .withTransactionManager()
         .claim()
         .run(context -> {
@@ -74,7 +99,7 @@ public class OutboxStarterAutoconfigurationTests {
     ContextRunnerDecorator.create(contextRunner)
         .withEnabled(true)
         .withFixedDelay(-1)
-        .withDatasource(true)
+        .withMockDatasource()
         .withTransactionManager()
         .claim()
         .run(context -> {
@@ -96,24 +121,24 @@ public class OutboxStarterAutoconfigurationTests {
         });
   }
 
-//    @Test
-//    void should_not_provide_transactionalOutboxScheduler_when_datasource_is_present_but_not_postgres() {
-//        it.gov.acn.ContextRunnerDecorator.create(contextRunner)
-//                .withEnabled(true)
-//                .withFixedDelay(3000)
-//                .withDatasource(false)
-//                .claim()
-//                .run(context -> {
-//                    assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
-//                    assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
-//                });
-//    }
+  @Test
+  void should_not_provide_transactionalOutboxScheduler_when_datasource_is_present_but_not_the_db_table() {
+    ContextRunnerDecorator.create(contextRunner)
+        .withEnabled(true)
+        .withMockDatasource()
+        .withTransactionManager()
+        .claim()
+        .run(context -> {
+          Assertions.assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
+          Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
+        });
+  }
 
   @Test
   void should_not_provide_transactionalOutboxScheduler_when_scheduler_not_enabled() {
     ContextRunnerDecorator.create(contextRunner)
         .withEnabled(false)
-        .withDatasource(true)
+        .withMockDatasource()
         .withTransactionManager()
         .claim()
         .run(context -> {

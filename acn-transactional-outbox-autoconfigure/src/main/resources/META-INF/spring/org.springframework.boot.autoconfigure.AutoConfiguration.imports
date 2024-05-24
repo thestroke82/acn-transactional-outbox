@@ -1,1 +1,2 @@
 it.gov.acn.config.TransactionalOutboxAutoconfiguration
+it.gov.acn.config.BulkheadAutoConfiguration

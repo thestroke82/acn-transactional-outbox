@@ -2,12 +2,14 @@ package it.gov.acn.config;
 
 import it.gov.acn.etc.Constants;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
+import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix = Constants.APP_PROPERTIES_PREFIX)
 public class TransactionalOutboxProperties {
     public enum EnvPropertyKeys {
         ENABLED("enabled"),
-        FIXED_DELAY("fixed-delay");
+        FIXED_DELAY("fixed-delay"),
+        TABLE_NAME("table-name");
 
         private final String key;
 
@@ -31,6 +33,10 @@ public class TransactionalOutboxProperties {
      */
     private long fixedDelay = DefaultConfiguration.FIXED_DELAY;
 
+    /**
+     * Table name for the outbox.
+     */
+    private String tableName = DefaultConfiguration.TABLE_NAME;
 
     public boolean isEnabled() {
         return enabled;
@@ -48,11 +54,20 @@ public class TransactionalOutboxProperties {
         this.fixedDelay = fixedDelay;
     }
 
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
     @Override
     public String toString() {
         return "TransactionalOutboxProperties{" +
                 "enabled=" + enabled +
                 ", fixedDelay=" + fixedDelay +
+                ", tableName='" + tableName + '\'' +
                 '}';
     }
 }
