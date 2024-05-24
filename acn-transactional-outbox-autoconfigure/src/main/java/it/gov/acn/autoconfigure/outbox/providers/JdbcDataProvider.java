@@ -1,4 +1,4 @@
-package it.gov.acn.providers;
+package it.gov.acn.autoconfigure.outbox.providers;
 
 import it.gov.acn.outboxprocessor.model.DataProvider;
 

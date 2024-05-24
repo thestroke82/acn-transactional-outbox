@@ -1,14 +1,13 @@
-package it.gov.acn.config;
+package it.gov.acn.autoconfigure.outbox.config;
 
-import it.gov.acn.TransactionalOutboxScheduler;
-import it.gov.acn.condition.ContextValidCondition;
-import it.gov.acn.condition.StarterEnabled;
+import it.gov.acn.autoconfigure.outbox.OutboxScheduler;
+import it.gov.acn.autoconfigure.outbox.condition.ContextValidCondition;
+import it.gov.acn.autoconfigure.outbox.condition.StarterEnabled;
 import it.gov.acn.outboxprocessor.model.DataProvider;
-import it.gov.acn.providers.JdbcDataProvider;
+import it.gov.acn.autoconfigure.outbox.providers.JdbcDataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -16,12 +15,8 @@ import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfig
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.boot.context.properties.ConfigurationPropertiesBindingPostProcessor;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.Ordered;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -35,12 +30,12 @@ import javax.sql.DataSource;
     FlywayAutoConfiguration.class,
     BatchAutoConfiguration.class
 })
-public class TransactionalOutboxAutoconfiguration {
-    private final Logger logger = LoggerFactory.getLogger(TransactionalOutboxAutoconfiguration.class);
+public class OutboxAutoconfiguration {
+    private final Logger logger = LoggerFactory.getLogger(OutboxAutoconfiguration.class);
 
     @Bean
     public Object bulkhead1(
-        TransactionalOutboxProperties transactionalOutboxProperties
+        OutboxProperties transactionalOutboxProperties
     ) {
         return new Object();
     }
@@ -85,12 +80,12 @@ public class TransactionalOutboxAutoconfiguration {
         StarterEnabled.class,
         ContextValidCondition.class
     })
-    public TransactionalOutboxScheduler transactionalOutboxScheduler(
-        TransactionalOutboxProperties transactionalOutboxProperties,
+    public OutboxScheduler transactionalOutboxScheduler(
+        OutboxProperties transactionalOutboxProperties,
         TaskScheduler taskScheduler,
         DataProvider dataProvider
     ){
         logger.debug("Transactional Outbox Starter configuration details: {}",transactionalOutboxProperties);
-        return new TransactionalOutboxScheduler(transactionalOutboxProperties, taskScheduler, dataProvider);
+        return new OutboxScheduler(transactionalOutboxProperties, taskScheduler, dataProvider);
     }
 }

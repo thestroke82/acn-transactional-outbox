@@ -1,4 +1,4 @@
-package it.gov.acn.etc;
+package it.gov.acn.autoconfigure.outbox.etc;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;

@@ -1,4 +1,4 @@
-package it.gov.acn.etc;
+package it.gov.acn.autoconfigure.outbox.etc;
 
 import java.util.Optional;
 import org.springframework.core.env.Environment;

@@ -1,4 +1,4 @@
-package it.gov.acn.config;
+package it.gov.acn.autoconfigure.outbox.config;
 
 public class DefaultConfiguration {
     public static final boolean ENABLED = false;

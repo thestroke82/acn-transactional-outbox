@@ -12,7 +12,7 @@ public class JustAnotherTest extends PostgresTestContext {
 
 
   @Test
-  void test_temporary_beans_are_garbage_collected() throws InterruptedException {
+  void test() throws InterruptedException {
     System.out.println("Just another test");
     Thread.sleep(10000);
   }

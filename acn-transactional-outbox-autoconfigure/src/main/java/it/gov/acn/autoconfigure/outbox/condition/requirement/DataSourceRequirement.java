@@ -1,14 +1,10 @@
-package it.gov.acn.condition.requirement;
+package it.gov.acn.autoconfigure.outbox.condition.requirement;
 
-import it.gov.acn.etc.Utils;
+import it.gov.acn.autoconfigure.outbox.etc.Utils;
 import java.util.Optional;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 import javax.sql.DataSource;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 
 public class DataSourceRequirement implements ContextRequirement{
 

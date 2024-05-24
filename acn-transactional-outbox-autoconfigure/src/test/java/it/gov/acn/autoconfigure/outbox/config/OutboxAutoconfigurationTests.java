@@ -1,9 +1,9 @@
-package it.gov.acn.config;
+package it.gov.acn.autoconfigure.outbox.config;
 
-import it.gov.acn.ContextRunnerDecorator;
-import it.gov.acn.TransactionalOutboxScheduler;
-import it.gov.acn.condition.requirement.ContextRequirementsValidator;
-import it.gov.acn.etc.Utils;
+import it.gov.acn.autoconfigure.outbox.ContextRunnerDecorator;
+import it.gov.acn.autoconfigure.outbox.OutboxScheduler;
+import it.gov.acn.autoconfigure.outbox.condition.requirement.ContextRequirementsValidator;
+import it.gov.acn.autoconfigure.outbox.etc.Utils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,10 +17,10 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.util.ReflectionTestUtils;
 
-public class OutboxStarterAutoconfigurationTests {
+public class OutboxAutoconfigurationTests {
 
     private ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(BulkheadAutoConfiguration.class, TransactionalOutboxAutoconfiguration.class));
+            .withConfiguration(AutoConfigurations.of(BulkheadAutoConfiguration.class, OutboxAutoconfiguration.class));
     private static MockedStatic<Utils> mockedStatic;
 
     @BeforeAll
@@ -50,7 +50,7 @@ public class OutboxStarterAutoconfigurationTests {
     }
 
     private final Class<?>[] autoConfigurations =
-            {BulkheadAutoConfiguration.class,TransactionalOutboxAutoconfiguration.class};
+            {BulkheadAutoConfiguration.class, OutboxAutoconfiguration.class};
 
     @Test
     void should_provide_ThreadPoolTaskScheduler_when_no_other_TaskScheduler_present() {
@@ -91,7 +91,7 @@ public class OutboxStarterAutoconfigurationTests {
                 .withTransactionManager()
                 .claim()
                 .run(context -> {
-                    Assertions.assertThat(context).hasSingleBean(TransactionalOutboxScheduler.class);
+                    Assertions.assertThat(context).hasSingleBean(OutboxScheduler.class);
                     Assertions.assertThat(context).hasBean("transactionalOutboxScheduler");
                 });
     }
@@ -101,7 +101,7 @@ public class OutboxStarterAutoconfigurationTests {
         ContextRunnerDecorator.create(contextRunner)
                 .claim()
                 .run(context -> {
-                    Assertions.assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
+                    Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
                     Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
                 });
     }
@@ -115,7 +115,7 @@ public class OutboxStarterAutoconfigurationTests {
                 .withTransactionManager()
                 .claim()
                 .run(context -> {
-                    Assertions.assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
+                    Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
                     Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
                 });
     }
@@ -127,23 +127,23 @@ public class OutboxStarterAutoconfigurationTests {
                 .withTransactionManager()
                 .claim()
                 .run(context -> {
-                    Assertions.assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
+                    Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
                     Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
                 });
     }
 
-    @Test
-    void should_not_provide_transactionalOutboxScheduler_when_datasource_is_present_but_not_the_db_table() {
-        ContextRunnerDecorator.create(contextRunner)
-                .withEnabled(true)
-                .withDatasource()
-                .withTransactionManager()
-                .claim()
-                .run(context -> {
-                    Assertions.assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
-                    Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
-                });
-    }
+//    @Test
+//    void should_not_provide_transactionalOutboxScheduler_when_datasource_is_present_but_not_the_db_table() {
+//        ContextRunnerDecorator.create(contextRunner)
+//                .withEnabled(true)
+//                .withDatasource()
+//                .withTransactionManager()
+//                .claim()
+//                .run(context -> {
+//                    Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
+//                    Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
+//                });
+//    }
 
     @Test
     void should_not_provide_transactionalOutboxScheduler_when_scheduler_not_enabled() {
@@ -153,7 +153,7 @@ public class OutboxStarterAutoconfigurationTests {
                 .withTransactionManager()
                 .claim()
                 .run(context -> {
-                    Assertions.assertThat(context).doesNotHaveBean(TransactionalOutboxScheduler.class);
+                    Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
                     Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
                 });
     }

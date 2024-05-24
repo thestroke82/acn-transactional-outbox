@@ -1,7 +1,7 @@
-package it.gov.acn.condition.requirement;
+package it.gov.acn.autoconfigure.outbox.condition.requirement;
 
-import it.gov.acn.config.TransactionalOutboxProperties;
-import it.gov.acn.etc.Utils;
+import it.gov.acn.autoconfigure.outbox.config.OutboxProperties;
+import it.gov.acn.autoconfigure.outbox.etc.Utils;
 import java.util.Optional;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -11,11 +11,11 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 public class OutboxTableRequirement implements ContextRequirement{
   private final Logger logger = LoggerFactory.getLogger(OutboxTableRequirement.class);
   private final ConfigurableListableBeanFactory beanFactory;
-  private final TransactionalOutboxProperties properties;
+  private final OutboxProperties properties;
 
   public OutboxTableRequirement(
       ConfigurableListableBeanFactory beanFactory,
-      TransactionalOutboxProperties properties
+      OutboxProperties properties
   ) {
     this.beanFactory = beanFactory;
     this.properties = properties;

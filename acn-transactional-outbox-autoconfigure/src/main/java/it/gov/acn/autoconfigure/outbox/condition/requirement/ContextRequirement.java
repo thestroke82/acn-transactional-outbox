@@ -1,4 +1,4 @@
-package it.gov.acn.condition.requirement;
+package it.gov.acn.autoconfigure.outbox.condition.requirement;
 
 import java.util.Optional;
 

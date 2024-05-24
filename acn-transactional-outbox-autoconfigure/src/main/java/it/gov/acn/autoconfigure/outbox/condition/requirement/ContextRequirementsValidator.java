@@ -1,13 +1,12 @@
-package it.gov.acn.condition.requirement;
+package it.gov.acn.autoconfigure.outbox.condition.requirement;
 
-import it.gov.acn.config.TransactionalOutboxProperties;
+import it.gov.acn.autoconfigure.outbox.config.OutboxProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.env.Environment;
 
@@ -26,21 +25,21 @@ public class ContextRequirementsValidator {
   private static ContextRequirementsValidator instance;
   private final List<ContextRequirement> requirements;
   private ConditionContext context;
-  private TransactionalOutboxProperties properties;
+  private OutboxProperties properties;
 
   private Boolean valid;
 
   private ContextRequirementsValidator(ConditionContext context) {
     this.context = context;
-    this.properties = Objects.requireNonNull(context.getBeanFactory()).getBean(TransactionalOutboxProperties.class);
+    this.properties = Objects.requireNonNull(context.getBeanFactory()).getBean(OutboxProperties.class);
     Environment environment = context.getEnvironment();
     ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
 
     this.requirements = List.of(
         new ValidPropertiesRequirement(environment),
         new DataSourceRequirement(beanFactory),
-        new TransactionManagerRequirement(beanFactory),
-        new OutboxTableRequirement(beanFactory, properties)
+        new TransactionManagerRequirement(beanFactory)
+        // new OutboxTableRequirement(beanFactory, properties)
     );
   }
 

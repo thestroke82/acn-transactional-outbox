@@ -1,6 +1,6 @@
-package it.gov.acn.condition.requirement;
+package it.gov.acn.autoconfigure.outbox.condition.requirement;
 
-import it.gov.acn.etc.Utils;
+import it.gov.acn.autoconfigure.outbox.etc.Utils;
 import java.util.Optional;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.transaction.PlatformTransactionManager;

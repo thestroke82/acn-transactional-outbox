@@ -1,6 +1,6 @@
-package it.gov.acn.condition;
+package it.gov.acn.autoconfigure.outbox.condition;
 
-import it.gov.acn.condition.requirement.ContextRequirementsValidator;
+import it.gov.acn.autoconfigure.outbox.condition.requirement.ContextRequirementsValidator;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;

@@ -1,11 +1,8 @@
-package it.gov.acn.config;
+package it.gov.acn.autoconfigure.outbox.config;
 
-import it.gov.acn.etc.Constants;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.ConstructorBinding;
-import org.springframework.stereotype.Component;
+import it.gov.acn.autoconfigure.outbox.etc.Constants;
 
-public class TransactionalOutboxProperties {
+public class OutboxProperties {
     public enum EnvPropertyKeys {
         ENABLED("enabled"),
         FIXED_DELAY("fixed-delay"),

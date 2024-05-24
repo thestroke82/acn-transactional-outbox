@@ -1,6 +1,6 @@
-package it.gov.acn;
+package it.gov.acn.autoconfigure.outbox;
 
-import it.gov.acn.config.TransactionalOutboxProperties;
+import it.gov.acn.autoconfigure.outbox.config.OutboxProperties;
 import it.gov.acn.outboxprocessor.OutboxProcessor;
 import it.gov.acn.outboxprocessor.OutboxProcessorConfiguration;
 import it.gov.acn.outboxprocessor.model.DataProvider;
@@ -9,14 +9,14 @@ import org.springframework.scheduling.TaskScheduler;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-public class TransactionalOutboxScheduler {
-    private final TransactionalOutboxProperties properties;
+public class OutboxScheduler {
+    private final OutboxProperties properties;
     private final TaskScheduler taskScheduler;
 
     private final DataProvider dataProvider;
 
-    public TransactionalOutboxScheduler(
-        TransactionalOutboxProperties properties, TaskScheduler taskScheduler, DataProvider dataProvider
+    public OutboxScheduler(
+            OutboxProperties properties, TaskScheduler taskScheduler, DataProvider dataProvider
     ) {
         this.dataProvider = dataProvider;
         this.properties = properties;

@@ -1,6 +1,6 @@
-package it.gov.acn;
+package it.gov.acn.autoconfigure.outbox;
 
-import it.gov.acn.config.TransactionalOutboxProperties;
+import it.gov.acn.autoconfigure.outbox.config.OutboxProperties;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -29,12 +29,12 @@ public class ContextRunnerDecorator {
     }
 
     public ContextRunnerDecorator withEnabled(boolean enabled) {
-        this.contextRunner = this.contextRunner.withPropertyValues(TransactionalOutboxProperties.EnvPropertyKeys.ENABLED.getKeyWithPrefix() + "=" + enabled);
+        this.contextRunner = this.contextRunner.withPropertyValues(OutboxProperties.EnvPropertyKeys.ENABLED.getKeyWithPrefix() + "=" + enabled);
         return this;
     }
 
     public ContextRunnerDecorator withFixedDelay(long fixedDelay) {
-        this.contextRunner = this.contextRunner.withPropertyValues(TransactionalOutboxProperties.EnvPropertyKeys.FIXED_DELAY.getKeyWithPrefix() + "=" + fixedDelay);
+        this.contextRunner = this.contextRunner.withPropertyValues(OutboxProperties.EnvPropertyKeys.FIXED_DELAY.getKeyWithPrefix() + "=" + fixedDelay);
         return this;
     }
 
