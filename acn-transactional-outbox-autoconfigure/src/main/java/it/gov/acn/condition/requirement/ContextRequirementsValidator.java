@@ -7,6 +7,7 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.env.Environment;
 
@@ -38,8 +39,8 @@ public class ContextRequirementsValidator {
     this.requirements = List.of(
         new ValidPropertiesRequirement(environment),
         new DataSourceRequirement(beanFactory),
-        new TransactionManagerRequirement(beanFactory)
-        // new OutboxTableRequirement(beanFactory, properties)
+        new TransactionManagerRequirement(beanFactory),
+        new OutboxTableRequirement(beanFactory, properties)
     );
   }
 

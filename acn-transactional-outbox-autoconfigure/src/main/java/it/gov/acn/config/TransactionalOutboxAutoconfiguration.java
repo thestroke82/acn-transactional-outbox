@@ -85,10 +85,6 @@ public class TransactionalOutboxAutoconfiguration {
         StarterEnabled.class,
         ContextValidCondition.class
     })
-    @DependsOn({
-        "threadPoolTaskScheduler",
-        "dataProvider"
-    })
     public TransactionalOutboxScheduler transactionalOutboxScheduler(
         TransactionalOutboxProperties transactionalOutboxProperties,
         TaskScheduler taskScheduler,

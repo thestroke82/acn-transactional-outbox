@@ -1,7 +1,6 @@
 package it.gov.acn;
 
 import it.gov.acn.config.TransactionalOutboxProperties;
-import java.sql.ResultSet;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -9,6 +8,9 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.PlatformTransactionManager;
 
 public class ContextRunnerDecorator {
@@ -20,8 +22,9 @@ public class ContextRunnerDecorator {
         this.contextRunner = contextRunner;
     }
 
-    public ContextRunnerDecorator withUserConfiguration(Class<?>... userConfiguration) {
-        this.contextRunner = this.contextRunner.withUserConfiguration(userConfiguration);
+    public ContextRunnerDecorator withTaskScheduler() {
+        this.contextRunner = this.contextRunner.withBean("testTaskScheduler", TaskScheduler.class,
+                () ->  Mockito.mock(ThreadPoolTaskScheduler.class));
         return this;
     }
 
@@ -35,7 +38,7 @@ public class ContextRunnerDecorator {
         return this;
     }
 
-    public ContextRunnerDecorator withMockDatasource() {
+    public ContextRunnerDecorator withDatasource() {
         DataSource postgresDataSource = Mockito.mock(DataSource.class);
         Connection connection = Mockito.mock(Connection.class);
         DatabaseMetaData metaData = Mockito.mock(DatabaseMetaData.class);
