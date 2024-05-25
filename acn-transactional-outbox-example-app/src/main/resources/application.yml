@@ -3,3 +3,12 @@ spring:
     keep-alive: true
   application:
     name: dontcare
+  datasource:
+    driver: org.postgresql.Driver
+    jdbcUrl: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+
+logging:
+  level:
+    it.gov.acn: DEBUG
