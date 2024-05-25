@@ -3,6 +3,7 @@ package it.gov.acn.autoconfigure.outbox;
 import it.gov.acn.autoconfigure.outbox.config.BulkheadAutoConfiguration;
 import it.gov.acn.autoconfigure.outbox.config.OutboxAutoconfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

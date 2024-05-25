@@ -3,7 +3,7 @@ package it.gov.acn.autoconfigure.outbox.config;
 import it.gov.acn.autoconfigure.outbox.OutboxScheduler;
 import it.gov.acn.autoconfigure.outbox.condition.ContextValidCondition;
 import it.gov.acn.autoconfigure.outbox.condition.StarterEnabled;
-import it.gov.acn.autoconfigure.outbox.providers.JdbcDataProvider;
+import it.gov.acn.autoconfigure.outbox.providers.postgres.PostgresJdbcDataProvider;
 import it.gov.acn.outboxprocessor.model.DataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +63,7 @@ public class OutboxAutoconfiguration {
     })
     public DataProvider dataProvider(DataSource dataSource){
         // TODO: Factory method to create a DataProvider
-        return new JdbcDataProvider();
+        return new PostgresJdbcDataProvider(dataSource);
     }
 
     // That's the main bean that will be created only if the conditions at the end of

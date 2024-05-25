@@ -4,6 +4,10 @@ spring:
   application:
     name: dontcare
 
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: '0'
+
 logging:
   level:
     it.gov.acn: DEBUG
