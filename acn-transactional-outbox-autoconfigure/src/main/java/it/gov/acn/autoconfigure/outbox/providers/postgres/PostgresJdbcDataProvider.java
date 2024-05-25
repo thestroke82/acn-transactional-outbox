@@ -50,7 +50,7 @@ public class PostgresJdbcDataProvider implements DataProvider {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error while finding outbox items", e);
         }
 
         return outboxItems;
@@ -71,7 +71,7 @@ public class PostgresJdbcDataProvider implements DataProvider {
                 outboxItem = resultSet.next() ? mapResultSetToOutboxItem(resultSet) : null;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error while finding outbox item by id", e);
         }
 
         return outboxItem;
@@ -104,7 +104,7 @@ public class PostgresJdbcDataProvider implements DataProvider {
 
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error while saving outbox item", e);
         }
     }
 
@@ -134,7 +134,7 @@ public class PostgresJdbcDataProvider implements DataProvider {
 
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error while updating outbox item", e);
         }
     }
 
