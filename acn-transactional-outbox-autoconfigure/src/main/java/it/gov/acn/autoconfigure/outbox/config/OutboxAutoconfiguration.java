@@ -3,8 +3,8 @@ package it.gov.acn.autoconfigure.outbox.config;
 import it.gov.acn.autoconfigure.outbox.OutboxScheduler;
 import it.gov.acn.autoconfigure.outbox.condition.ContextValidCondition;
 import it.gov.acn.autoconfigure.outbox.condition.StarterEnabled;
-import it.gov.acn.outboxprocessor.model.DataProvider;
 import it.gov.acn.autoconfigure.outbox.providers.JdbcDataProvider;
+import it.gov.acn.outboxprocessor.model.DataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -32,13 +32,6 @@ import javax.sql.DataSource;
 })
 public class OutboxAutoconfiguration {
     private final Logger logger = LoggerFactory.getLogger(OutboxAutoconfiguration.class);
-
-    @Bean
-    public Object bulkhead1(
-        OutboxProperties transactionalOutboxProperties
-    ) {
-        return new Object();
-    }
 
     // a task scheduler is needed to schedule the outbox processor
     // it will be created only if there is no other task scheduler in the context

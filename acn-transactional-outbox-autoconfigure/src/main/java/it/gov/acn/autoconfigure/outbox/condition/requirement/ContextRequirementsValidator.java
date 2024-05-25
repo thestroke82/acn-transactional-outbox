@@ -35,12 +35,11 @@ public class ContextRequirementsValidator {
     Environment environment = context.getEnvironment();
     ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
 
-    this.requirements = List.of(
+    this.requirements = new ArrayList<>(List.of(
         new ValidPropertiesRequirement(environment),
         new DataSourceRequirement(beanFactory),
         new TransactionManagerRequirement(beanFactory)
-        // new OutboxTableRequirement(beanFactory, properties)
-    );
+    ));
   }
 
   public static ContextRequirementsValidator getInstance(ConditionContext context) {

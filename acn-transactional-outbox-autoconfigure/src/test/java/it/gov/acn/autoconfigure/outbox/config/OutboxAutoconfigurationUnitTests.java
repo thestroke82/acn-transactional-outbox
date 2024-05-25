@@ -17,35 +17,18 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.util.ReflectionTestUtils;
 
-public class OutboxAutoconfigurationTests {
+public class OutboxAutoconfigurationUnitTests {
 
     private ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(BulkheadAutoConfiguration.class, OutboxAutoconfiguration.class));
-    private static MockedStatic<Utils> mockedStatic;
 
     @BeforeAll
-    static void setUp() {
-        // Initialize the MockedStatic instance
-        mockedStatic = Mockito.mockStatic(Utils.class);
-        // Define the behavior of the static method
-        mockedStatic
-                .when(()-> Utils.doesTableExist(Mockito.any(), Mockito.any()))
-                .thenReturn(true);
-        // leave the rest of the methods to their default behavior
-        mockedStatic.when(()->Utils.isPostgresDatasource(Mockito.any())).thenCallRealMethod();
-        mockedStatic.when(()->Utils.isBeanPresentInContext(Mockito.any(),Mockito.any())).thenCallRealMethod();
+    static void beforeAll() {
+        ReflectionTestUtils.setField(ContextRequirementsValidator.class, "disableDbValidation", true);
     }
-
-    @AfterAll
-    static void tearDown() {
-        // Close the MockedStatic instance
-        if (mockedStatic != null) {
-            mockedStatic.close();
-        }
-    }
-
     @BeforeEach
     void beforeEach() {
+
         ReflectionTestUtils.setField(ContextRequirementsValidator.class, "instance", null);
     }
 
@@ -132,18 +115,6 @@ public class OutboxAutoconfigurationTests {
                 });
     }
 
-//    @Test
-//    void should_not_provide_transactionalOutboxScheduler_when_datasource_is_present_but_not_the_db_table() {
-//        ContextRunnerDecorator.create(contextRunner)
-//                .withEnabled(true)
-//                .withDatasource()
-//                .withTransactionManager()
-//                .claim()
-//                .run(context -> {
-//                    Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
-//                    Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
-//                });
-//    }
 
     @Test
     void should_not_provide_transactionalOutboxScheduler_when_scheduler_not_enabled() {
