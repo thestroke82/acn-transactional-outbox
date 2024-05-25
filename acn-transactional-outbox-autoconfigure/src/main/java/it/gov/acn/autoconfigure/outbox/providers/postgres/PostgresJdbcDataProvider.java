@@ -50,11 +50,92 @@ public class PostgresJdbcDataProvider implements DataProvider {
                 }
             }
         } catch (SQLException e) {
-            // Log and handle the exception appropriately
             e.printStackTrace();
         }
 
         return outboxItems;
+    }
+
+    @Override
+    public OutboxItem findById(UUID id) {
+        OutboxItem outboxItem = null;
+        String sql = "SELECT " + OutboxSqlColumns.getAllColumns() +
+                " FROM transactional_outbox WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setObject(1, id);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                outboxItem = resultSet.next() ? mapResultSetToOutboxItem(resultSet) : null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return outboxItem;
+    }
+
+    @Override
+    public void save(OutboxItem item) {
+        String sql = "INSERT INTO transactional_outbox (" + String.join(", ",
+                ID.getColumnName(),
+                EVENT_TYPE.getColumnName(),
+                CREATION_DATE.getColumnName(),
+                LAST_ATTEMPT_DATE.getColumnName(),
+                COMPLETION_DATE.getColumnName(),
+                ATTEMPTS.getColumnName(),
+                EVENT.getColumnName(),
+                LAST_ERROR.getColumnName()) +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setObject(1, item.getId());
+            preparedStatement.setString(2, item.getEventType());
+            preparedStatement.setTimestamp(3, Timestamp.from(item.getCreationDate()));
+            preparedStatement.setTimestamp(4, item.getLastAttemptDate() != null ? Timestamp.from(item.getLastAttemptDate()) : null);
+            preparedStatement.setTimestamp(5, item.getCompletionDate() != null ? Timestamp.from(item.getCompletionDate()) : null);
+            preparedStatement.setInt(6, item.getAttempts());
+            preparedStatement.setString(7, item.getEvent());
+            preparedStatement.setString(8, item.getLastError());
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void update(OutboxItem item) {
+        String sql = "UPDATE transactional_outbox SET " +
+                EVENT_TYPE.getColumnName() + " = ?, " +
+                CREATION_DATE.getColumnName() + " = ?, " +
+                LAST_ATTEMPT_DATE.getColumnName() + " = ?, " +
+                COMPLETION_DATE.getColumnName() + " = ?, " +
+                ATTEMPTS.getColumnName() + " = ?, " +
+                EVENT.getColumnName() + " = ?, " +
+                LAST_ERROR.getColumnName() + " = ? " +
+                "WHERE " + ID.getColumnName() + " = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, item.getEventType());
+            preparedStatement.setTimestamp(2, Timestamp.from(item.getCreationDate()));
+            preparedStatement.setTimestamp(3, item.getLastAttemptDate() != null ? Timestamp.from(item.getLastAttemptDate()) : null);
+            preparedStatement.setTimestamp(4, item.getCompletionDate() != null ? Timestamp.from(item.getCompletionDate()) : null);
+            preparedStatement.setInt(5, item.getAttempts());
+            preparedStatement.setString(6, item.getEvent());
+            preparedStatement.setString(7, item.getLastError());
+            preparedStatement.setObject(8, item.getId());
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private Instant toInstant(Timestamp timestamp) {
