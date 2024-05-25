@@ -1,4 +1,4 @@
-package it.gov.acn.outboxprocessor.model;
+package it.gov.acn.outbox.model;
 
 import java.time.Instant;
 import java.util.UUID;

@@ -1,8 +1,8 @@
 package it.gov.acn.autoconfigure.outbox.config;
 
 import it.gov.acn.autoconfigure.outbox.ContextRunnerDecorator;
-import it.gov.acn.autoconfigure.outbox.OutboxScheduler;
 import it.gov.acn.autoconfigure.outbox.condition.requirement.ContextRequirementsValidator;
+import it.gov.acn.outbox.scheduler.OutboxScheduler;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

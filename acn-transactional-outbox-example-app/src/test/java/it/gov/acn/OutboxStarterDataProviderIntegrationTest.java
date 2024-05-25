@@ -1,16 +1,12 @@
 package it.gov.acn;
 
-import it.gov.acn.autoconfigure.outbox.config.DefaultConfiguration;
 import it.gov.acn.autoconfigure.outbox.providers.postgres.PostgresJdbcDataProvider;
-import it.gov.acn.outboxprocessor.model.DataProvider;
-import it.gov.acn.outboxprocessor.model.OutboxItem;
-import org.flywaydb.core.Flyway;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.OutboxItem;
+import it.gov.acn.outbox.model.Sort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.Instant;
@@ -88,6 +84,59 @@ public class OutboxStarterDataProviderIntegrationTest extends PostgresTestContex
         assertFalse(result.isEmpty());
         assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() == null && oi.getAttempts() <= 2));
 
+    }
+
+    @Test
+    void when_find_with_sort_then_items_are_sorted_correctly() {
+        // Arrange
+        Sort sort = Sort.of(Sort.Property.CREATION_DATE, Sort.Direction.ASC);
+
+        // Act
+        List<OutboxItem> result = dataProvider.find(false, Integer.MAX_VALUE, sort);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+
+        // Check that the list is sorted by creation date in ascending order
+        for (int i = 0; i < result.size() - 1; i++) {
+            assertTrue(result.get(i).getCreationDate().compareTo(result.get(i + 1).getCreationDate()) <= 0);
+        }
+    }
+    @Test
+    void when_find_with_sort_by_last_attempt_date_then_items_are_sorted_correctly() {
+        // Arrange
+        Sort sort = Sort.of(Sort.Property.LAST_ATTEMPT_DATE, Sort.Direction.ASC);
+
+        // Act
+        List<OutboxItem> result = dataProvider.find(false, Integer.MAX_VALUE, sort);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+
+        // Check that the list is sorted by last attempt date in ascending order
+        for (int i = 0; i < result.size() - 1; i++) {
+            assertTrue(result.get(i).getLastAttemptDate().compareTo(result.get(i + 1).getLastAttemptDate()) <= 0);
+        }
+    }
+
+    @Test
+    void when_find_with_sort_by_attempts_then_items_are_sorted_correctly() {
+        // Arrange
+        Sort sort = Sort.of(Sort.Property.ATTEMPTS, Sort.Direction.ASC);
+
+        // Act
+        List<OutboxItem> result = dataProvider.find(false, Integer.MAX_VALUE, sort);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+
+        // Check that the list is sorted by attempts in ascending order
+        for (int i = 0; i < result.size() - 1; i++) {
+            assertTrue(result.get(i).getAttempts() <= result.get(i + 1).getAttempts());
+        }
     }
 
     @Test

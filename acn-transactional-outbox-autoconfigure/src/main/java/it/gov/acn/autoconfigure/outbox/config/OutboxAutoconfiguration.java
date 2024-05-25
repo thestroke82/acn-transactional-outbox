@@ -1,13 +1,14 @@
 package it.gov.acn.autoconfigure.outbox.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.gov.acn.autoconfigure.outbox.OutboxScheduler;
 import it.gov.acn.autoconfigure.outbox.condition.ContextValidCondition;
 import it.gov.acn.autoconfigure.outbox.condition.StarterEnabled;
 import it.gov.acn.autoconfigure.outbox.manager.OutboxManager;
 import it.gov.acn.autoconfigure.outbox.manager.OutboxManagerImpl;
 import it.gov.acn.autoconfigure.outbox.providers.postgres.PostgresJdbcDataProvider;
-import it.gov.acn.outboxprocessor.model.DataProvider;
+import it.gov.acn.outbox.core.OutboxConfiguration;
+import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.SchedulingProvider;
+import it.gov.acn.outbox.scheduler.OutboxScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -24,6 +25,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import javax.sql.DataSource;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 @AutoConfiguration(after= {
     BulkheadAutoConfiguration.class,
@@ -89,6 +92,14 @@ public class OutboxAutoconfiguration {
         DataProvider dataProvider
     ){
         logger.debug("Transactional Outbox Starter configuration details: {}",transactionalOutboxProperties);
-        return new OutboxScheduler(transactionalOutboxProperties, taskScheduler, dataProvider);
+        OutboxConfiguration outboxConfiguration = OutboxConfiguration.builder()
+            .fixedDelay(transactionalOutboxProperties.getFixedDelay())
+            .maxAttempts(transactionalOutboxProperties.getMaxAttempts())
+            .backoffBase(transactionalOutboxProperties.getBackoffBase())
+            .dataProvider(dataProvider)
+            .schedulingProvider((task, delay) ->
+                    taskScheduler.scheduleWithFixedDelay(task, Duration.of(delay, ChronoUnit.MILLIS)))
+            .build();
+        return new OutboxScheduler(outboxConfiguration);
     }
 }

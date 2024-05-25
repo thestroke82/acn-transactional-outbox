@@ -1,8 +1,9 @@
 package it.gov.acn.autoconfigure.outbox.providers.postgres;
 
 import it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns;
-import it.gov.acn.outboxprocessor.model.DataProvider;
-import it.gov.acn.outboxprocessor.model.OutboxItem;
+import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.OutboxItem;
+import it.gov.acn.outbox.model.Sort;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -34,9 +35,15 @@ public class PostgresJdbcDataProvider implements DataProvider {
 
     @Override
     public List<OutboxItem> find(boolean completed, int maxAttempts) {
+        return find(completed, maxAttempts, Sort.defaultSort());
+    }
+    @Override
+    public List<OutboxItem> find(boolean completed, int maxAttempts, Sort sort) {
         List<OutboxItem> outboxItems = new ArrayList<>();
+
         String sql = "SELECT " + OutboxSqlColumns.getAllColumns() +
-                " FROM transactional_outbox WHERE (completion_date IS " + (completed ? "NOT " : "") + "NULL) AND attempts <= ?";
+            " FROM transactional_outbox WHERE (completion_date IS " + (completed ? "NOT " : "") + "NULL) AND attempts <= ?" +
+            " ORDER BY " + getColumnName(sort.getProperty()) + " " + getDirection(sort.getDirection());
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -142,6 +149,30 @@ public class PostgresJdbcDataProvider implements DataProvider {
         return timestamp != null ? timestamp.toInstant() : null;
     }
 
+    private String getColumnName(Sort.Property property) {
+        switch (property) {
+            case CREATION_DATE:
+                return OutboxSqlColumns.CREATION_DATE.getColumnName();
+            case LAST_ATTEMPT_DATE:
+                return OutboxSqlColumns.LAST_ATTEMPT_DATE.getColumnName();
+            case COMPLETION_DATE:
+                return OutboxSqlColumns.COMPLETION_DATE.getColumnName();
+            case ATTEMPTS:
+                return OutboxSqlColumns.ATTEMPTS.getColumnName();
+            default:
+                throw new IllegalArgumentException("Unexpected value: " + property);
+        }
+    }
+    private String getDirection(Sort.Direction direction) {
+        switch (direction) {
+            case ASC:
+                return "ASC";
+            case DESC:
+                return "DESC";
+            default:
+                throw new IllegalArgumentException("Unexpected value: " + direction);
+        }
+    }
     private OutboxItem mapResultSetToOutboxItem(ResultSet resultSet) throws SQLException {
         OutboxItem item = new OutboxItem();
         item.setId(resultSet.getObject(ID.getColumnName(), UUID.class));
