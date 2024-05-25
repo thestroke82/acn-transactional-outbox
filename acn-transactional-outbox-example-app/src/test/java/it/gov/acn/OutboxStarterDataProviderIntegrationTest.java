@@ -7,8 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -112,4 +115,63 @@ public class OutboxStarterDataProviderIntegrationTest extends PostgresTestContex
     assertFalse(result.isEmpty());
     assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() != null && oi.getAttempts() <= 1));
   }
+
+  @Test
+    void when_save_then_outbox_item_is_persisted() {
+        OutboxItem newItem = new OutboxItem();
+        UUID newId = UUID.randomUUID();
+        newItem.setId(newId);
+        newItem.setEventType("NEW_EVENT_TYPE");
+        newItem.setCreationDate(Instant.now());
+        newItem.setLastAttemptDate(Instant.now());
+        newItem.setCompletionDate(Instant.now());
+        newItem.setAttempts(0);
+        newItem.setEvent("NEW_EVENT_DATA");
+        newItem.setLastError(null);
+
+        dataProvider.save(newItem);
+
+        OutboxItem result = dataProvider.findById(newId);
+        assertNotNull(result);
+        assertEquals(newItem.getId(), result.getId());
+        assertEquals(newItem.getEventType(), result.getEventType());
+        assertEquals(newItem.getCreationDate().toEpochMilli(), result.getCreationDate().toEpochMilli());
+        assertEquals(newItem.getLastAttemptDate().toEpochMilli(), result.getLastAttemptDate().toEpochMilli());
+        assertEquals(newItem.getCompletionDate().toEpochMilli(), result.getCompletionDate().toEpochMilli());
+        assertEquals(newItem.getAttempts(), result.getAttempts());
+        assertEquals(newItem.getEvent(), result.getEvent());
+        assertEquals(newItem.getLastError(), result.getLastError());
+    }
+
+    @Test
+    void when_update_then_outbox_item_is_updated() {
+        // First, save a new item
+        OutboxItem newItem = new OutboxItem();
+        UUID newId = UUID.randomUUID();
+        newItem.setId(newId);
+        newItem.setEventType("EVENT_TYPE_TO_UPDATE");
+        newItem.setCreationDate(Instant.now());
+        newItem.setLastAttemptDate(Instant.now());
+        newItem.setCompletionDate(Instant.now());
+        newItem.setAttempts(0);
+        newItem.setEvent("EVENT_DATA_TO_UPDATE");
+        newItem.setLastError(null);
+
+        dataProvider.save(newItem);
+
+        // Update the saved item
+        newItem.setEventType("UPDATED_EVENT_TYPE");
+        newItem.setAttempts(1);
+        newItem.setEvent("UPDATED_EVENT_DATA");
+        newItem.setLastError("UPDATED_ERROR");
+
+        dataProvider.update(newItem);
+
+        OutboxItem result = dataProvider.findById(newId);
+        assertNotNull(result);
+        assertEquals("UPDATED_EVENT_TYPE", result.getEventType());
+        assertEquals(1, result.getAttempts());
+        assertEquals("UPDATED_EVENT_DATA", result.getEvent());
+        assertEquals("UPDATED_ERROR", result.getLastError());
+    }
 }
