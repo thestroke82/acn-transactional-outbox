@@ -1,8 +1,11 @@
 package it.gov.acn.autoconfigure.outbox.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.acn.autoconfigure.outbox.OutboxScheduler;
 import it.gov.acn.autoconfigure.outbox.condition.ContextValidCondition;
 import it.gov.acn.autoconfigure.outbox.condition.StarterEnabled;
+import it.gov.acn.autoconfigure.outbox.manager.OutboxManager;
+import it.gov.acn.autoconfigure.outbox.manager.OutboxManagerImpl;
 import it.gov.acn.autoconfigure.outbox.providers.postgres.PostgresJdbcDataProvider;
 import it.gov.acn.outboxprocessor.model.DataProvider;
 import org.slf4j.Logger;
@@ -64,6 +67,13 @@ public class OutboxAutoconfiguration {
     public DataProvider dataProvider(DataSource dataSource){
         // TODO: Factory method to create a DataProvider
         return new PostgresJdbcDataProvider(dataSource);
+    }
+
+    // the outbox manager is the interface to the client code to record events
+    @Bean
+    @ConditionalOnBean(DataProvider.class)
+    public OutboxManager outboxManager(DataProvider dataProvider){
+        return new OutboxManagerImpl(dataProvider);
     }
 
     // That's the main bean that will be created only if the conditions at the end of
