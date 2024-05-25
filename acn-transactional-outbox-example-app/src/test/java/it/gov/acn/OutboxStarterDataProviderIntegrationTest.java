@@ -1,11 +1,17 @@
 package it.gov.acn;
 
+import it.gov.acn.autoconfigure.outbox.config.DefaultConfiguration;
 import it.gov.acn.autoconfigure.outbox.providers.postgres.PostgresJdbcDataProvider;
 import it.gov.acn.outboxprocessor.model.DataProvider;
 import it.gov.acn.outboxprocessor.model.OutboxItem;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.jdbc.Sql;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,101 +28,101 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         "acn.outbox.scheduler.enabled=true",
         "acn.outbox.scheduler.fixed-delay=3000",
 })
+@Sql(scripts = "/db/test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 public class OutboxStarterDataProviderIntegrationTest extends PostgresTestContext {
 
-  @Autowired
-  private DataProvider dataProvider;
+    @Autowired
+    private DataProvider dataProvider;
+
+    @Test
+    void contextLoads() {
+        assertTrue(dataProvider instanceof PostgresJdbcDataProvider);
+    }
+
+    @Test
+    void when_find_some_results_are_returned() {
+        List<OutboxItem> result = dataProvider.find(true, 1);
+        assertNotNull(result);
+        assertTrue(result.size()>0);
+    }
 
 
-  @Test
-  void contextLoads() {
-    assertTrue(dataProvider instanceof PostgresJdbcDataProvider);
-  }
+    @Test
+    void when_find_with_completed_true_returns_completed_items() {
+        List<OutboxItem> result = dataProvider.find(true, 1);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi->oi.getCompletionDate()!=null));
+    }
 
-  @Test
-  void when_find_some_results_are_returned() {
-    List<OutboxItem> result = dataProvider.find(true, 1);
-    assertNotNull(result);
-    assertTrue(result.size()>0);
-  }
+    @Test
+    void when_find_with_completed_false_returns_incomplete_items() {
+        List<OutboxItem> result = dataProvider.find(false, 2);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi->oi.getCompletionDate()==null));
+    }
 
+    @Test
+    void when_find_with_max_attempts_filters_correctly() {
+        List<OutboxItem> result = dataProvider.find(false, 2);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi -> oi.getAttempts() <= 2));
 
-  @Test
-  void when_find_with_completed_true_returns_completed_items() {
-    List<OutboxItem> result = dataProvider.find(true, 1);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi->oi.getCompletionDate()!=null));
-  }
+        result = dataProvider.find(false, 3);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi -> oi.getAttempts() <= 3));
+    }
 
-  @Test
-  void when_find_with_completed_false_returns_incomplete_items() {
-    List<OutboxItem> result = dataProvider.find(false, 2);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi->oi.getCompletionDate()==null));
-  }
+    @Test
+    void when_find_with_different_completed_and_attempts_criteria() {
+        List<OutboxItem> result = dataProvider.find(true, 3);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() != null && oi.getAttempts() <= 3));
 
-  @Test
-  void when_find_with_max_attempts_filters_correctly() {
-    List<OutboxItem> result = dataProvider.find(false, 2);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi -> oi.getAttempts() <= 2));
+        result = dataProvider.find(false, 2);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() == null && oi.getAttempts() <= 2));
 
-    result = dataProvider.find(false, 3);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi -> oi.getAttempts() <= 3));
-  }
+    }
 
-  @Test
-  void when_find_with_different_completed_and_attempts_criteria() {
-    List<OutboxItem> result = dataProvider.find(true, 3);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() != null && oi.getAttempts() <= 3));
+    @Test
+    void when_find_with_edge_cases_fuckin_break_it() {
+        // Test with the maximum allowed attempts
+        List<OutboxItem> result = dataProvider.find(false, Integer.MAX_VALUE);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi -> oi.getAttempts() <= Integer.MAX_VALUE));
 
-    result = dataProvider.find(false, 2);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() == null && oi.getAttempts() <= 2));
+        // Test with no attempts allowed (should return empty)
+        result = dataProvider.find(false, 0);
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
 
-  }
+        // Test with completed items and maximum allowed attempts
+        result = dataProvider.find(true, Integer.MAX_VALUE);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() != null && oi.getAttempts() <= Integer.MAX_VALUE));
 
-  @Test
-  void when_find_with_edge_cases_fuckin_break_it() {
-    // Test with the maximum allowed attempts
-    List<OutboxItem> result = dataProvider.find(false, Integer.MAX_VALUE);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi -> oi.getAttempts() <= Integer.MAX_VALUE));
+        // Test with incomplete items and specific attempts
+        result = dataProvider.find(false, 3);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() == null && oi.getAttempts() <= 3));
 
-    // Test with no attempts allowed (should return empty)
-    result = dataProvider.find(false, 0);
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+        // Test with completed items and specific attempts
+        result = dataProvider.find(true, 1);
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() != null && oi.getAttempts() <= 1));
+    }
 
-    // Test with completed items and maximum allowed attempts
-    result = dataProvider.find(true, Integer.MAX_VALUE);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() != null && oi.getAttempts() <= Integer.MAX_VALUE));
-
-    // Test with incomplete items and specific attempts
-    result = dataProvider.find(false, 3);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() == null && oi.getAttempts() <= 3));
-
-    // Test with completed items and specific attempts
-    result = dataProvider.find(true, 1);
-    assertNotNull(result);
-    assertFalse(result.isEmpty());
-    assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() != null && oi.getAttempts() <= 1));
-  }
-
-  @Test
+    @Test
     void when_save_then_outbox_item_is_persisted() {
         OutboxItem newItem = new OutboxItem();
         UUID newId = UUID.randomUUID();
