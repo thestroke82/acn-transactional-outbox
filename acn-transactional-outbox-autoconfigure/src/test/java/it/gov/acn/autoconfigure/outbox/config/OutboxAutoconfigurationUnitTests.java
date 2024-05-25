@@ -22,10 +22,7 @@ public class OutboxAutoconfigurationUnitTests {
     private ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(BulkheadAutoConfiguration.class, OutboxAutoconfiguration.class));
 
-    @BeforeAll
-    static void beforeAll() {
-        ReflectionTestUtils.setField(ContextRequirementsValidator.class, "disableDbValidation", true);
-    }
+
     @BeforeEach
     void beforeEach() {
 
