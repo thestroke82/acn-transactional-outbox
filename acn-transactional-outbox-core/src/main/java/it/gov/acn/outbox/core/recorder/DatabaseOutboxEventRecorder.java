@@ -1,4 +1,4 @@
-package it.gov.acn.outbox.core;
+package it.gov.acn.outbox.core.recorder;
 
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;

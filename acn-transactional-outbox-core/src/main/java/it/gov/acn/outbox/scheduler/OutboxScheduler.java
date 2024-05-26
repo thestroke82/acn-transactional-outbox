@@ -1,7 +1,7 @@
 package it.gov.acn.outbox.scheduler;
 
-import it.gov.acn.outbox.core.OutboxConfiguration;
-import it.gov.acn.outbox.core.OutboxProcessor;
+import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
+import it.gov.acn.outbox.core.processor.OutboxProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

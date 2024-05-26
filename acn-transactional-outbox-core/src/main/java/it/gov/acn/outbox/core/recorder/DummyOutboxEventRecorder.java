@@ -1,4 +1,4 @@
-package it.gov.acn.outbox.core;
+package it.gov.acn.outbox.core.recorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
