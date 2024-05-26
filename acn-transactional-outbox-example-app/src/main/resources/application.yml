@@ -1,14 +1,27 @@
+datasource:
+  driver: org.postgresql.Driver
+  jdbcUrl: ${POSTGRES_URL}
+  username: ${POSTGRES_USERNAME}
+  password: ${POSTGRES_PASSWORD}
+
 spring:
   main:
     keep-alive: true
   application:
     name: dontcare
   datasource:
-    driver: org.postgresql.Driver
-    jdbcUrl: ${POSTGRES_URL}
-    username: ${POSTGRES_USERNAME}
-    password: ${POSTGRES_PASSWORD}
+    driver-class-name: ${datasource.driver}
+    username: ${datasource.username}
+    url: ${datasource.jdbcUrl}
+    password: ${datasource.password}
+
+acn:
+  outbox:
+    scheduler:
+      enabled: true
+
 
 logging:
   level:
+    root: INFO
     it.gov.acn: DEBUG
