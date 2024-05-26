@@ -5,11 +5,13 @@ import it.gov.acn.autoconfigure.outbox.condition.StarterEnabled;
 import it.gov.acn.autoconfigure.outbox.providers.data.postgres.PostgresJdbcDataProvider;
 import it.gov.acn.autoconfigure.outbox.providers.scheduling.TaskSchedulerSchedulingProvider;
 import it.gov.acn.autoconfigure.outbox.providers.serialization.JacksonSerializationProvider;
-import it.gov.acn.outbox.core.DataOutboxManager;
-import it.gov.acn.outbox.core.DummyOutboxManager;
+import it.gov.acn.outbox.core.DatabaseOutboxEventRecorder;
+import it.gov.acn.outbox.core.DummyOutboxEventRecorder;
 import it.gov.acn.outbox.core.OutboxConfiguration;
-import it.gov.acn.outbox.core.OutboxManager;
+import it.gov.acn.outbox.core.OutboxEventRecorder;
 import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.SchedulingProvider;
+import it.gov.acn.outbox.model.SerializationProvider;
 import it.gov.acn.outbox.scheduler.OutboxScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +61,7 @@ public class OutboxAutoconfiguration {
 
 
 
-    // a data provider is needed to fetch the outbox messages
-    // it will be created only if the context is valid and the outbox is enabled
+    // a data provider is needed by the core to fetch and update the outbox items
     @Bean
     @ConditionalOnBean(DataSource.class)
     @Conditional({
@@ -68,35 +69,73 @@ public class OutboxAutoconfiguration {
             ContextValidCondition.class
     })
     public DataProvider dataProvider(DataSource dataSource){
-        // TODO: Factory method to create a DataProvider
+        // TODO: Factory method to create a DataProvider, for now there is only one implementation
         return new PostgresJdbcDataProvider(dataSource);
     }
 
-    // the outbox manager is the interface to the client code to record events
+    // a scheduling provider is needed by the core to schedule the outbox processor
     @Bean
-    @ConditionalOnBean(DataProvider.class)
-    public OutboxManager outboxManager(DataProvider dataProvider){
-        return new DataOutboxManager(dataProvider, new JacksonSerializationProvider());
+    @ConditionalOnBean(TaskScheduler.class)
+    @Conditional({
+            StarterEnabled.class,
+            ContextValidCondition.class
+    })
+    public SchedulingProvider schedulingProvider(TaskScheduler taskScheduler){
+        // TODO: Factory method to create a SchedulingProvider, for now there is only one implementation
+        return new TaskSchedulerSchedulingProvider(taskScheduler);
     }
 
-    // We need a dummy outbox manager to be used when the outbox is disabled, as a fallback
-    @Bean
-    @ConditionalOnMissingBean(name = "outboxManager")
-    public OutboxManager dummyOutboxManager(){
-        return new DummyOutboxManager();
-    }
-
-    // That's the main bean that will be created only if the conditions at the end of
-    // the conditions chain
+    // a serialization provider is needed by the core to serialize the events
     @Bean
     @Conditional({
             StarterEnabled.class,
             ContextValidCondition.class
     })
+    public SerializationProvider serializationProvider(){
+        // TODO: Factory method to create a SerializationProvider, for now there is only one implementation
+        return new JacksonSerializationProvider();
+    }
+
+
+    // the outbox recorder serves as a bridge for the client code to register events
+    @Bean
+    @ConditionalOnBean({
+            DataProvider.class,
+            SerializationProvider.class
+    })
+    public OutboxEventRecorder outboxEventRecorder(
+            DataProvider dataProvider,
+            SerializationProvider serializationProvider
+    ){
+        return new DatabaseOutboxEventRecorder(dataProvider, serializationProvider);
+    }
+
+    // We set up a dummy outbox event recorder so the client code can still work even if the outbox is not enabled
+    // note that is is a conditional bean, it will only be created if the real outbox event recorder is not present
+    @Bean
+    @ConditionalOnMissingBean(name = "outboxEventRecorder")
+    public OutboxEventRecorder dummyOutboxEventRecorder(){
+        return new DummyOutboxEventRecorder();
+    }
+
+
+
+    // That's bean that activates the outbox scheduler(see core module)
+    @Bean
+    @Conditional({
+            StarterEnabled.class,
+            ContextValidCondition.class
+    })
+    @ConditionalOnBean({
+            DataProvider.class,
+            SchedulingProvider.class,
+            SerializationProvider.class
+    })
     public OutboxScheduler transactionalOutboxScheduler(
             OutboxProperties transactionalOutboxProperties,
-            TaskScheduler taskScheduler,
-            DataProvider dataProvider
+            DataProvider dataProvider,
+            SchedulingProvider schedulingProvider,
+            SerializationProvider serializationProvider
     ){
         logger.debug("Transactional Outbox Starter configuration details: {}",transactionalOutboxProperties);
         OutboxConfiguration outboxConfiguration = OutboxConfiguration.builder()
@@ -104,8 +143,8 @@ public class OutboxAutoconfiguration {
                 .maxAttempts(transactionalOutboxProperties.getMaxAttempts())
                 .backoffBase(transactionalOutboxProperties.getBackoffBase())
                 .dataProvider(dataProvider)
-                .schedulingProvider(new TaskSchedulerSchedulingProvider(taskScheduler))
-                .serializationProvider(new JacksonSerializationProvider())
+                .schedulingProvider(schedulingProvider)
+                .serializationProvider(serializationProvider)
                 .build();
         return new OutboxScheduler(outboxConfiguration);
     }
