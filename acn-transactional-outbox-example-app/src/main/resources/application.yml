@@ -24,4 +24,4 @@ acn:
 logging:
   level:
     root: INFO
-    it.gov.acn: DEBUG
+    it.gov.acn: TRACE
