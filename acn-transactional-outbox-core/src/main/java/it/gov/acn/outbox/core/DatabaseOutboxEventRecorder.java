@@ -7,12 +7,12 @@ import it.gov.acn.outbox.model.SerializationProvider;
 import java.time.Instant;
 import java.util.UUID;
 
-public class DataOutboxManager implements OutboxManager {
+public class DatabaseOutboxEventRecorder implements OutboxEventRecorder {
 
     private final DataProvider dataProvider;
     private final SerializationProvider serializationProvider;
 
-    public DataOutboxManager(DataProvider dataProvider, SerializationProvider serializationProvider) {
+    public DatabaseOutboxEventRecorder(DataProvider dataProvider, SerializationProvider serializationProvider) {
         this.dataProvider = dataProvider;
         this.serializationProvider = serializationProvider;
     }

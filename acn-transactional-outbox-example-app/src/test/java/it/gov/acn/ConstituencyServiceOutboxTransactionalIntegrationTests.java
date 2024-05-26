@@ -3,7 +3,7 @@ package it.gov.acn;
 import it.gov.acn.autoconfigure.outbox.config.DefaultConfiguration;
 import it.gov.acn.model.Constituency;
 import it.gov.acn.model.ConstituencyCreatedEvent;
-import it.gov.acn.outbox.core.OutboxManager;
+import it.gov.acn.outbox.core.OutboxEventRecorder;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.repository.ConstituencyRepository;
@@ -35,7 +35,7 @@ public class ConstituencyServiceOutboxTransactionalIntegrationTests extends Post
     private ConstituencyService constituencyService;
 
     @SpyBean
-    private OutboxManager outboxManager;
+    private OutboxEventRecorder outboxManager;
 
     @SpyBean
     private ConstituencyRepository constituencyRepository;

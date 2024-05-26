@@ -2,7 +2,7 @@ package it.gov.acn.service;
 
 import it.gov.acn.model.Constituency;
 import it.gov.acn.model.ConstituencyCreatedEvent;
-import it.gov.acn.outbox.core.OutboxManager;
+import it.gov.acn.outbox.core.OutboxEventRecorder;
 import it.gov.acn.repository.ConstituencyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public class ConstituencyService {
 
     private final ConstituencyRepository constituencyRepository;
-    private final OutboxManager outboxManager;
+    private final OutboxEventRecorder outboxManager;
 
     @Transactional
     public Constituency saveConstituency(Constituency constituency) {
