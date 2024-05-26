@@ -37,6 +37,7 @@ public class ContextRequirementsValidator {
 
     this.requirements = new ArrayList<>(List.of(
         new ValidPropertiesRequirement(environment),
+        new OutboxItemHandlerRequirement(beanFactory),
         new DataSourceRequirement(beanFactory),
         new TransactionManagerRequirement(beanFactory)
     ));

@@ -1,6 +1,7 @@
 package it.gov.acn.autoconfigure.outbox;
 
 import it.gov.acn.autoconfigure.outbox.config.OutboxProperties;
+import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -58,6 +59,14 @@ public class ContextRunnerDecorator {
         PlatformTransactionManager transactionManager = Mockito.mock(PlatformTransactionManager.class);
 
         this.contextRunner = this.contextRunner.withBean("transactionManager", PlatformTransactionManager.class, () -> transactionManager);
+        return this;
+    }
+
+    public ContextRunnerDecorator withOutboxItemHandlerProvider() {
+        OutboxItemHandlerProvider outboxItemHandlerProvider = Mockito.mock(OutboxItemHandlerProvider.class);
+
+        this.contextRunner = this.contextRunner.withBean("outboxItemHandlerProvider",
+                OutboxItemHandlerProvider.class, () -> outboxItemHandlerProvider);
         return this;
     }
 

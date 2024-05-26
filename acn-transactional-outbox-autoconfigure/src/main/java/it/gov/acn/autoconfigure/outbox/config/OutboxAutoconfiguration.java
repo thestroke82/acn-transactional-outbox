@@ -10,6 +10,7 @@ import it.gov.acn.outbox.core.recorder.DummyOutboxEventRecorder;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.core.recorder.OutboxEventRecorder;
 import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.SchedulingProvider;
 import it.gov.acn.outbox.model.SerializationProvider;
 import it.gov.acn.outbox.scheduler.OutboxScheduler;
@@ -96,6 +97,9 @@ public class OutboxAutoconfiguration {
         return new JacksonSerializationProvider();
     }
 
+    // a last provider is needed: outbox item provider to handle the outbox items
+    // note: this provider must be implemented by the !client code! at this point we have
+    // already checked that an implementation is present in the context
 
     // the outbox recorder serves as a bridge for the client code to register events
     @Bean
@@ -129,13 +133,15 @@ public class OutboxAutoconfiguration {
     @ConditionalOnBean({
             DataProvider.class,
             SchedulingProvider.class,
-            SerializationProvider.class
+            SerializationProvider.class,
+
     })
     public OutboxScheduler transactionalOutboxScheduler(
             OutboxProperties transactionalOutboxProperties,
             DataProvider dataProvider,
             SchedulingProvider schedulingProvider,
-            SerializationProvider serializationProvider
+            SerializationProvider serializationProvider,
+            OutboxItemHandlerProvider outboxItemHandlerProvider
     ){
         logger.debug("Transactional Outbox Starter configuration details: {}",transactionalOutboxProperties);
         OutboxConfiguration outboxConfiguration = OutboxConfiguration.builder()
@@ -145,6 +151,7 @@ public class OutboxAutoconfiguration {
                 .dataProvider(dataProvider)
                 .schedulingProvider(schedulingProvider)
                 .serializationProvider(serializationProvider)
+                .outboxItemHandlerProvider(outboxItemHandlerProvider)
                 .build();
         return new OutboxScheduler(outboxConfiguration);
     }

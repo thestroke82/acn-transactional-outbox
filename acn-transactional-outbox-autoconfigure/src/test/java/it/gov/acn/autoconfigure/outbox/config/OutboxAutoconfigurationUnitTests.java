@@ -32,6 +32,7 @@ public class OutboxAutoconfigurationUnitTests {
         ContextRunnerDecorator.create(contextRunner)
                 .withEnabled(true)
                 .withDatasource()
+                .withOutboxItemHandlerProvider()
                 .withTransactionManager()
                 .claim()
                 .run(context -> {
@@ -48,6 +49,7 @@ public class OutboxAutoconfigurationUnitTests {
                 .withEnabled(true)
                 .withDatasource()
                 .withTransactionManager()
+                .withOutboxItemHandlerProvider()
                 .withTaskScheduler()
                 .claim()
                 .run(context -> {
@@ -64,6 +66,7 @@ public class OutboxAutoconfigurationUnitTests {
                 .withEnabled(true)
                 .withDatasource()
                 .withTransactionManager()
+                .withOutboxItemHandlerProvider()
                 .claim()
                 .run(context -> {
                     Assertions.assertThat(context).hasSingleBean(OutboxScheduler.class);
@@ -88,6 +91,7 @@ public class OutboxAutoconfigurationUnitTests {
                 .withFixedDelay(-1)
                 .withDatasource()
                 .withTransactionManager()
+                .withOutboxItemHandlerProvider()
                 .claim()
                 .run(context -> {
                     Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
@@ -100,6 +104,20 @@ public class OutboxAutoconfigurationUnitTests {
         ContextRunnerDecorator.create(contextRunner)
                 .withEnabled(true)
                 .withTransactionManager()
+                .withOutboxItemHandlerProvider()
+                .claim()
+                .run(context -> {
+                    Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
+                    Assertions.assertThat(context).doesNotHaveBean("transactionalOutboxScheduler");
+                });
+    }
+
+    @Test
+    void should_not_provide_transactionalOutboxScheduler_when_item_handler_is_not_present() {
+        ContextRunnerDecorator.create(contextRunner)
+                .withEnabled(true)
+                .withTransactionManager()
+                .withDatasource()
                 .claim()
                 .run(context -> {
                     Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);
@@ -114,6 +132,7 @@ public class OutboxAutoconfigurationUnitTests {
                 .withEnabled(false)
                 .withDatasource()
                 .withTransactionManager()
+                .withOutboxItemHandlerProvider()
                 .claim()
                 .run(context -> {
                     Assertions.assertThat(context).doesNotHaveBean(OutboxScheduler.class);

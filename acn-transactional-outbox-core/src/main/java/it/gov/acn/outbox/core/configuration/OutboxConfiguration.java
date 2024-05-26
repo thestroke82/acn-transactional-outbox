@@ -1,6 +1,7 @@
 package it.gov.acn.outbox.core.configuration;
 
 import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.SchedulingProvider;
 import it.gov.acn.outbox.model.SerializationProvider;
 
@@ -42,6 +43,11 @@ public class OutboxConfiguration {
      */
     private SerializationProvider serializationProvider;
 
+    /**
+     * The outbox item handler provider to use for handling outbox items.
+     */
+    private OutboxItemHandlerProvider outboxItemHandlerProvider;
+
 
     private OutboxConfiguration() {
     }
@@ -57,6 +63,7 @@ public class OutboxConfiguration {
         private DataProvider dataProvider;
         private SchedulingProvider schedulingProvider;
         private SerializationProvider serializationProvider;
+        private OutboxItemHandlerProvider outboxItemHandlerProvider;
 
         public Builder fixedDelay(long fixedDelay) {
             this.fixedDelay = fixedDelay;
@@ -88,6 +95,11 @@ public class OutboxConfiguration {
             return this;
         }
 
+        public Builder outboxItemHandlerProvider(OutboxItemHandlerProvider outboxItemHandlerProvider) {
+            this.outboxItemHandlerProvider = outboxItemHandlerProvider;
+            return this;
+        }
+
        public OutboxConfiguration build() {
             OutboxConfiguration config = new OutboxConfiguration();
             config.fixedDelay = this.fixedDelay;
@@ -96,6 +108,7 @@ public class OutboxConfiguration {
             config.dataProvider = this.dataProvider;
             config.schedulingProvider = this.schedulingProvider;
             config.serializationProvider = this.serializationProvider;
+            config.outboxItemHandlerProvider = this.outboxItemHandlerProvider;
             return config;
         }
     }
@@ -124,6 +137,10 @@ public class OutboxConfiguration {
         return serializationProvider;
     }
 
+    public OutboxItemHandlerProvider getOutboxItemHandlerProvider() {
+        return outboxItemHandlerProvider;
+    }
+
     @Override
     public String toString() {
         return "OutboxConfiguration{" +
@@ -133,6 +150,7 @@ public class OutboxConfiguration {
                 ", dataProvider=" + dataProvider.getClass().getSimpleName() +
                 ", schedulingProvider=" + schedulingProvider.getClass().getSimpleName() +
                 ", serializationProvider=" + serializationProvider.getClass().getSimpleName() +
+                ", outboxItemHandlerProvider=" + outboxItemHandlerProvider.getClass().getSimpleName() +
                 '}';
     }
 }
