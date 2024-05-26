@@ -3,6 +3,7 @@ package it.gov.acn.outbox.core.processor;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
+import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.Sort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +15,13 @@ public class OutboxProcessor {
 
     private OutboxConfiguration outboxConfiguration;
     private DataProvider dataProvider;
+    private OutboxItemHandlerProvider outboxItemHandlerProvider;
     private OutboxItemSelectionStrategy outboxItemSelectionStrategy;
 
     public OutboxProcessor(OutboxConfiguration outboxConfiguration) {
         this.outboxConfiguration = outboxConfiguration;
         this.dataProvider = this.outboxConfiguration.getDataProvider();
+        this.outboxItemHandlerProvider = this.outboxConfiguration.getOutboxItemHandlerProvider();
         //TODO: Use a factory to create the OutboxItemSelectionStrategy, for now only one strategy is available
         this.outboxItemSelectionStrategy =
                 new ExponentialBackoffStrategy(this.outboxConfiguration.getBackoffBase());
@@ -43,7 +46,9 @@ public class OutboxProcessor {
         }
 
         logger.trace("Kafka outbox scheduler processing {} items", outstandingItems.size());
-        // outstandingItems.forEach(this.kafkaOutboxProcessor::processOutbox);
+
+        // that's the actual processing of the outbox items
+        outstandingItems.forEach(outboxItemHandlerProvider::handle);
     }
 
 }
