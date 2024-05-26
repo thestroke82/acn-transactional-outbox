@@ -33,8 +33,8 @@ public class OutboxProcessor {
         List<OutboxItem> outstandingItems =
                 this.dataProvider.find(false, this.outboxConfiguration.getMaxAttempts()+1, sort);
 
-        // select the outbox items to process in a more fine grained way, i.e. exponential backoff
-        // in fact, exp backoff is the only strategy implemented so far, but others could be added
+        // select the outbox items to process in a more detailed way, with in-memory filtering
+        // currently, the exponential backoff strategy is the only one implemented
         outstandingItems = this.outboxItemSelectionStrategy.execute(outstandingItems);
 
         if(outstandingItems.isEmpty()){
