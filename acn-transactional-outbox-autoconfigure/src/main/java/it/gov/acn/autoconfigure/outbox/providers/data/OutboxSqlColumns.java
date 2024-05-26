@@ -1,4 +1,4 @@
-package it.gov.acn.autoconfigure.outbox.providers;
+package it.gov.acn.autoconfigure.outbox.providers.data;
 
 public enum OutboxSqlColumns {
     ID("id"),

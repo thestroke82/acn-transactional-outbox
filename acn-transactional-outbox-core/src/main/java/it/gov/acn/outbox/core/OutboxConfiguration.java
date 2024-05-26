@@ -2,6 +2,7 @@ package it.gov.acn.outbox.core;
 
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.SchedulingProvider;
+import it.gov.acn.outbox.model.SerializationProvider;
 
 public class OutboxConfiguration {
 
@@ -36,6 +37,11 @@ public class OutboxConfiguration {
      */
     private SchedulingProvider schedulingProvider;
 
+    /**
+     * The serialization provider to use for serializing events to JSON.
+     */
+    private SerializationProvider serializationProvider;
+
 
     private OutboxConfiguration() {
     }
@@ -50,6 +56,7 @@ public class OutboxConfiguration {
         private int backoffBase;
         private DataProvider dataProvider;
         private SchedulingProvider schedulingProvider;
+        private SerializationProvider serializationProvider;
 
         public Builder fixedDelay(long fixedDelay) {
             this.fixedDelay = fixedDelay;
@@ -76,6 +83,11 @@ public class OutboxConfiguration {
             return this;
         }
 
+        public Builder serializationProvider(SerializationProvider serializationProvider) {
+            this.serializationProvider = serializationProvider;
+            return this;
+        }
+
        public OutboxConfiguration build() {
             OutboxConfiguration config = new OutboxConfiguration();
             config.fixedDelay = this.fixedDelay;
@@ -83,6 +95,7 @@ public class OutboxConfiguration {
             config.backoffBase = this.backoffBase;
             config.dataProvider = this.dataProvider;
             config.schedulingProvider = this.schedulingProvider;
+            config.serializationProvider = this.serializationProvider;
             return config;
         }
     }
@@ -107,14 +120,19 @@ public class OutboxConfiguration {
         return schedulingProvider;
     }
 
+    public SerializationProvider getSerializationProvider() {
+        return serializationProvider;
+    }
+
     @Override
     public String toString() {
-        return "OutboxProcessorConfiguration{" +
+        return "OutboxConfiguration{" +
                 "fixedDelay=" + fixedDelay +
                 ", maxAttempts=" + maxAttempts +
                 ", backoffBase=" + backoffBase +
-                ", dataProvider=" + dataProvider +
-                ", schedulingProvider=" + schedulingProvider +
+                ", dataProvider=" + dataProvider.getClass().getSimpleName() +
+                ", schedulingProvider=" + schedulingProvider.getClass().getSimpleName() +
+                ", serializationProvider=" + serializationProvider.getClass().getSimpleName() +
                 '}';
     }
 }

@@ -1,9 +1,9 @@
 package it.gov.acn;
 
 import it.gov.acn.autoconfigure.outbox.config.DefaultConfiguration;
-import it.gov.acn.autoconfigure.outbox.manager.OutboxManager;
 import it.gov.acn.model.Constituency;
 import it.gov.acn.model.ConstituencyCreatedEvent;
+import it.gov.acn.outbox.core.OutboxManager;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.repository.ConstituencyRepository;

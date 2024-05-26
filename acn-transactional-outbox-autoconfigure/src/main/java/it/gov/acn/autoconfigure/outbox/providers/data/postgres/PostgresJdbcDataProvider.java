@@ -1,6 +1,6 @@
-package it.gov.acn.autoconfigure.outbox.providers.postgres;
+package it.gov.acn.autoconfigure.outbox.providers.data.postgres;
 
-import it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns;
+import it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.model.Sort;
@@ -16,14 +16,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns.ATTEMPTS;
-import static it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns.COMPLETION_DATE;
-import static it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns.CREATION_DATE;
-import static it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns.EVENT;
-import static it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns.EVENT_TYPE;
-import static it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns.ID;
-import static it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns.LAST_ATTEMPT_DATE;
-import static it.gov.acn.autoconfigure.outbox.providers.OutboxSqlColumns.LAST_ERROR;
+import static it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns.ATTEMPTS;
+import static it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns.COMPLETION_DATE;
+import static it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns.CREATION_DATE;
+import static it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns.EVENT;
+import static it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns.EVENT_TYPE;
+import static it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns.ID;
+import static it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns.LAST_ATTEMPT_DATE;
+import static it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns.LAST_ERROR;
 
 public class PostgresJdbcDataProvider implements DataProvider {
 

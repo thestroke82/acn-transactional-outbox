@@ -1,8 +1,8 @@
 package it.gov.acn.service;
 
-import it.gov.acn.autoconfigure.outbox.manager.OutboxManager;
 import it.gov.acn.model.Constituency;
 import it.gov.acn.model.ConstituencyCreatedEvent;
+import it.gov.acn.outbox.core.OutboxManager;
 import it.gov.acn.repository.ConstituencyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

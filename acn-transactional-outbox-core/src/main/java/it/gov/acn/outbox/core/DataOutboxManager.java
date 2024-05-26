@@ -1,25 +1,20 @@
-package it.gov.acn.autoconfigure.outbox.manager;
+package it.gov.acn.outbox.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
-import org.springframework.beans.factory.annotation.Autowired;
+import it.gov.acn.outbox.model.SerializationProvider;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public class OutboxManagerImpl implements OutboxManager {
+public class DataOutboxManager implements OutboxManager {
 
     private final DataProvider dataProvider;
-    private final ObjectMapper objectMapper;
+    private final SerializationProvider serializationProvider;
 
-    @Autowired
-    public OutboxManagerImpl(DataProvider dataProvider) {
+    public DataOutboxManager(DataProvider dataProvider, SerializationProvider serializationProvider) {
         this.dataProvider = dataProvider;
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
+        this.serializationProvider = serializationProvider;
     }
 
     @Override
@@ -36,8 +31,8 @@ public class OutboxManagerImpl implements OutboxManager {
 
     private String serializeToJson(Object event) {
         try {
-            return objectMapper.writeValueAsString(event);
-        } catch (JsonProcessingException e) {
+            return serializationProvider.writeValueAsString(event);
+        } catch (Exception e) {
             throw new RuntimeException("Failed to serialize event to JSON: ", e);
         }
     }

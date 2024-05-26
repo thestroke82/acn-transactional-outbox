@@ -2,7 +2,7 @@ package it.gov.acn.autoconfigure.outbox.config;
 
 import it.gov.acn.autoconfigure.outbox.IntegrationTestConfig;
 import it.gov.acn.autoconfigure.outbox.TestApplication;
-import it.gov.acn.autoconfigure.outbox.providers.postgres.PostgresJdbcDataProvider;
+import it.gov.acn.autoconfigure.outbox.providers.data.postgres.PostgresJdbcDataProvider;
 import it.gov.acn.outbox.model.DataProvider;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
