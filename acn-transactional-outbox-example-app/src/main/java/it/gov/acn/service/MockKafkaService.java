@@ -1,5 +1,6 @@
 package it.gov.acn.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.acn.model.ConstituencyCreatedEvent;
 import it.gov.acn.model.MockKafkaBroker;
@@ -24,8 +25,13 @@ public class MockKafkaService implements OutboxItemHandlerProvider {
             return;
         }
         if(outboxItem.getEventType().equals(ConstituencyCreatedEvent.EVENT_TYPE_LITERAL)) {
-            ConstituencyCreatedEvent event = jacksonObjectMapper.convertValue(outboxItem.getEvent(), ConstituencyCreatedEvent.class);
-            MockKafkaBroker mockKafkaBroker = MockKafkaBroker.builder()
+          ConstituencyCreatedEvent event = null;
+          try {
+            event = jacksonObjectMapper.readValue(outboxItem.getEvent(), ConstituencyCreatedEvent.class);
+          } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+          }
+          MockKafkaBroker mockKafkaBroker = MockKafkaBroker.builder()
                     .id(UUID.fromString(event.getEventId()))
                     .creationDate(Instant.now())
                     .payload(outboxItem.getEvent())

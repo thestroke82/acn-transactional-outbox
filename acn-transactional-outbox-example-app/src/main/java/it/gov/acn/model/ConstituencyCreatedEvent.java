@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter
+@NoArgsConstructor
 public class ConstituencyCreatedEvent{
   public static String EVENT_TYPE_LITERAL = "ConstituencyCreatedEvent";
 
