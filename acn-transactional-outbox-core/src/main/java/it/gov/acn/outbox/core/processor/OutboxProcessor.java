@@ -5,6 +5,7 @@ import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.Sort;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +14,10 @@ import java.util.List;
 public class OutboxProcessor {
     private Logger logger = LoggerFactory.getLogger(OutboxProcessor.class);
 
-    private OutboxConfiguration outboxConfiguration;
-    private DataProvider dataProvider;
-    private OutboxItemHandlerProvider outboxItemHandlerProvider;
-    private OutboxItemSelectionStrategy outboxItemSelectionStrategy;
+    private final OutboxConfiguration outboxConfiguration;
+    private final DataProvider dataProvider;
+    private final OutboxItemHandlerProvider outboxItemHandlerProvider;
+    private final OutboxItemSelectionStrategy outboxItemSelectionStrategy;
 
     public OutboxProcessor(OutboxConfiguration outboxConfiguration) {
         this.outboxConfiguration = outboxConfiguration;
@@ -48,7 +49,33 @@ public class OutboxProcessor {
         logger.trace("Kafka outbox scheduler processing {} items", outstandingItems.size());
 
         // that's the actual processing of the outbox items
-        outstandingItems.forEach(outboxItemHandlerProvider::handle);
+        outstandingItems.forEach(this::processOutboxItem);
+    }
+
+    private void processOutboxItem(OutboxItem outboxItem){
+        try {
+            this.outboxItemHandlerProvider.handle(outboxItem);
+            this.setOutboxSuccess(outboxItem);
+        } catch (Exception e){
+            logger.error("Error processing outbox item {}", outboxItem.getId(), e);
+            this.setOutboxFailure(outboxItem, e.getMessage());
+        }
+    }
+
+    private void setOutboxSuccess(OutboxItem outboxItem){
+        Instant now = Instant.now();
+        outboxItem.setCompletionDate(now);
+        outboxItem.setAttempts(outboxItem.getAttempts() + 1);
+        outboxItem.setLastAttemptDate(now);
+        this.dataProvider.update(outboxItem);
+    }
+
+    private void setOutboxFailure(OutboxItem outboxItem, String errorMessage){
+        Instant now = Instant.now();
+        outboxItem.setAttempts(outboxItem.getAttempts() + 1);
+        outboxItem.setLastAttemptDate(now);
+        outboxItem.setLastError(errorMessage);
+        this.dataProvider.update(outboxItem);
     }
 
 }
