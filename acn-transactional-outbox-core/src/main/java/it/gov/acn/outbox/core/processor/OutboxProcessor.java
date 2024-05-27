@@ -6,13 +6,12 @@ import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.Sort;
 import java.time.Instant;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 public class OutboxProcessor {
-    private Logger logger = LoggerFactory.getLogger(OutboxProcessor.class);
+    private final Logger logger = LoggerFactory.getLogger(OutboxProcessor.class);
 
     private final OutboxConfiguration outboxConfiguration;
     private final DataProvider dataProvider;
@@ -37,7 +36,7 @@ public class OutboxProcessor {
         List<OutboxItem> outstandingItems =
                 this.dataProvider.find(false, this.outboxConfiguration.getMaxAttempts()+1, sort);
 
-        // select the outbox items to process in a more detailed way, with in-memory filtering
+        // select the outbox items to process in a more detailed way (in memory)
         // currently, the exponential backoff strategy is the only one implemented
         outstandingItems = this.outboxItemSelectionStrategy.execute(outstandingItems);
 
