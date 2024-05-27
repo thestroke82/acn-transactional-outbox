@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: test
   main:
     keep-alive: true
   application:

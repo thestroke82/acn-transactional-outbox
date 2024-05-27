@@ -1,6 +1,7 @@
 package it.gov.acn.outbox.model;
 
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 public class OutboxItem {

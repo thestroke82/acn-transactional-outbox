@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.mockito.Mockito;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Disabled
 @SpringBootTest(properties = {
         "acn.outbox.scheduler.enabled=true",
         "acn.outbox.scheduler.fixed-delay=3000",

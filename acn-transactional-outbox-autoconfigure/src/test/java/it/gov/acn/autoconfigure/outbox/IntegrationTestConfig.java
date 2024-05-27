@@ -1,32 +1,22 @@
 package it.gov.acn.autoconfigure.outbox;
 
-import it.gov.acn.autoconfigure.outbox.config.BulkheadAutoConfiguration;
-import it.gov.acn.autoconfigure.outbox.config.OutboxAutoconfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.DatabasePopulator;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import javax.sql.DataSource;
 import java.util.Optional;
 
 @TestConfiguration
-@ActiveProfiles("test")
+@ActiveProfiles("src/main/test")
 public  class IntegrationTestConfig {
 	protected final static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14.11").withReuse(true);
 
