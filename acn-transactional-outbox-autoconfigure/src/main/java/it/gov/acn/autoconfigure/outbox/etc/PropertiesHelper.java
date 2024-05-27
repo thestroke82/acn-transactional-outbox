@@ -23,4 +23,12 @@ public class PropertiesHelper {
       return Optional.empty();
     }
   }
+  public static  Optional<Integer> getIntegerProperty(String key, Environment environment) {
+    String property = environment.getProperty(key);
+    try {
+      return Optional.ofNullable(property).map(Integer::parseInt);
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
+  }
 }

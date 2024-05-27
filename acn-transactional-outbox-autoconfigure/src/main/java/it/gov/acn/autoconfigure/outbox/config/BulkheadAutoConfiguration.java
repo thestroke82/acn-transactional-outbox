@@ -1,5 +1,6 @@
 package it.gov.acn.autoconfigure.outbox.config;
 
+import it.gov.acn.autoconfigure.outbox.config.OutboxProperties.EnvPropertyKeys;
 import it.gov.acn.autoconfigure.outbox.etc.PropertiesHelper;
 
 import java.util.Optional;
@@ -22,14 +23,17 @@ public class BulkheadAutoConfiguration {
     OutboxProperties properties = new OutboxProperties();
 
     Optional<Boolean> enabled = PropertiesHelper.getBooleanProperty(
-        OutboxProperties.EnvPropertyKeys.ENABLED.getKeyWithPrefix(), environment);
+        EnvPropertyKeys.ENABLED.getKeyWithPrefix(), environment);
     enabled.ifPresent(properties::setEnabled);
     Optional<Long> fixedDelay = PropertiesHelper.getLongProperty(
-        OutboxProperties.EnvPropertyKeys.FIXED_DELAY.getKeyWithPrefix(), environment);
+        EnvPropertyKeys.FIXED_DELAY.getKeyWithPrefix(), environment);
     fixedDelay.ifPresent(properties::setFixedDelay);
     Optional<String> tableName = PropertiesHelper.getStringProperty(
-        OutboxProperties.EnvPropertyKeys.TABLE_NAME.getKeyWithPrefix(), environment);
+        EnvPropertyKeys.TABLE_NAME.getKeyWithPrefix(), environment);
     tableName.ifPresent(properties::setTableName);
+    Optional<Integer> backoffBase = PropertiesHelper.getIntegerProperty(
+        EnvPropertyKeys.BACKOFF_BASE.getKeyWithPrefix(), environment);
+    backoffBase.ifPresent(properties::setBackoffBase);
 
     return properties;
   }

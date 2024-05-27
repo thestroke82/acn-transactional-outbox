@@ -32,7 +32,7 @@ public class ExponentialBackoffStrategy implements OutboxItemSelectionStrategy{
             // accepting only outbox for which the current backoff period has expired
             // the backoff period is calculated as base^attempts
             Instant backoffProjection = oe.getLastAttemptDate()
-                    .plus(Duration.ofSeconds((long) Math.pow(backoffBase, oe.getAttempts())));
+                    .plus(Duration.ofMinutes((long) Math.pow(backoffBase, oe.getAttempts())));
 
             // if the projection is before now, it's time to retry, i.e. the backoff period has expired
             return backoffProjection.isBefore(now);

@@ -44,8 +44,8 @@ public class OutboxProperties {
     private int maxAttempts = DefaultConfiguration.MAX_ATTEMPTS;
 
     /**
-     * The base value for the backoff calculation, in seconds.
-     * Example with backoffBase=5*60(5 minutes) and maxAttempts=4:
+     * The base value for the backoff calculation, in minutes.
+     * Example with backoffBase=5 and maxAttempts=4:
      *  - first attempt: as soon as the scheduler runs
      *  - second attempt: 5 minutes after the first failed attempt
      *  - third attempt: 25 minutes after the second failed attempt
