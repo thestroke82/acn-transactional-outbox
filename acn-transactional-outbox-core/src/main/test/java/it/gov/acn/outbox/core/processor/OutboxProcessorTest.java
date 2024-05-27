@@ -1,0 +1,110 @@
+package it.gov.acn.outbox.core.processor;
+
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
+import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.OutboxItem;
+import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
+import java.util.Collections;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+public class OutboxProcessorTest {
+
+    @Mock
+    private OutboxConfiguration outboxConfiguration;
+
+    @Mock
+    private DataProvider dataProvider;
+
+    @Mock
+    private OutboxItemHandlerProvider outboxItemHandlerProvider;
+
+    private OutboxProcessor outboxProcessor;
+
+    @BeforeEach
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
+        when(outboxConfiguration.getDataProvider()).thenReturn(dataProvider);
+        when(outboxConfiguration.getOutboxItemHandlerProvider()).thenReturn(outboxItemHandlerProvider);
+        outboxProcessor = new OutboxProcessor(outboxConfiguration);
+    }
+
+    @Test
+    public void given_no_outstanding_items_when_process_then_verify_no_handle() {
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(Collections.emptyList());
+        outboxProcessor.process();
+        verify(dataProvider, times(1)).find(anyBoolean(), anyInt(), any());
+        verify(outboxItemHandlerProvider, times(0)).handle(any());
+    }
+
+    @Test
+    public void given_outstanding_items_when_process_then_verify_handle_them() {
+        OutboxItem outboxItem = new OutboxItem();
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(List.of(outboxItem));
+        outboxProcessor.process();
+        verify(dataProvider, times(1)).find(anyBoolean(), anyInt(), any());
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem);
+    }
+
+    @Test
+    public void given_outbox_item_when_process_then_update_item() {
+        OutboxItem outboxItem = new OutboxItem();
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(List.of(outboxItem));
+        outboxProcessor.process();
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem);
+        verify(dataProvider, times(1)).update(outboxItem);
+    }
+
+    @Test
+    public void given_outbox_item_success_when_process_then_update_item_with_success() {
+        OutboxItem outboxItem = new OutboxItem();
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(List.of(outboxItem));
+
+        ArgumentCaptor<OutboxItem> captor = ArgumentCaptor.forClass(OutboxItem.class);
+
+        outboxProcessor.process();
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem);
+        verify(dataProvider, times(1)).update(captor.capture());
+
+        // Verify arguments
+        List<OutboxItem> allValues = captor.getAllValues();
+        OutboxItem lastValue = allValues.get(allValues.size() - 1);
+        assertNull(lastValue.getLastError());
+        assertNotNull(lastValue.getCompletionDate());
+        assertEquals(1, lastValue.getAttempts());
+    }
+
+    @Test
+    public void given_outbox_item_failure_when_process_then_update_item_with_error() {
+        OutboxItem outboxItem = new OutboxItem();
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(List.of(outboxItem));
+
+        ArgumentCaptor<OutboxItem> captor = ArgumentCaptor.forClass(OutboxItem.class);
+        doThrow(new RuntimeException("Test exception")).when(outboxItemHandlerProvider).handle(outboxItem);
+
+
+        outboxProcessor.process();
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem);
+        verify(dataProvider, times(1)).update(captor.capture());
+
+        // Verify arguments
+        List<OutboxItem> allValues = captor.getAllValues();
+        OutboxItem lastValue = allValues.get(allValues.size() - 1);
+        assertNotNull(lastValue.getLastError());
+        assertTrue(lastValue.getLastError().contains("Test exception"));
+        assertEquals(1, lastValue.getAttempts());
+    }
+}
