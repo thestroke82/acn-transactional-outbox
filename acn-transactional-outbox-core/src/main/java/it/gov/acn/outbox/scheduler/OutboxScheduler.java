@@ -20,7 +20,15 @@ public class OutboxScheduler {
     public void schedule(){
         logger.debug("Scheduling outbox processor with conf: "+outboxConfiguration.toString());
         this.outboxConfiguration.getSchedulingProvider()
-                .schedule(outboxProcessor::process, outboxConfiguration.getFixedDelay());
+                .schedule(this::safeProcess, outboxConfiguration.getFixedDelay());
+    }
+
+    private void safeProcess(){
+        try {
+            this.outboxProcessor.process();
+        } catch (Exception e){
+            logger.error("Error processing outbox", e);
+        }
     }
 
 }
