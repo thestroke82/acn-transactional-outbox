@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.acn.autoconfigure.outbox.config.DefaultConfiguration;
 import it.gov.acn.model.Constituency;
+import it.gov.acn.outbox.core.processor.OutboxProcessor;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
+import it.gov.acn.outbox.scheduler.OutboxScheduler;
 import it.gov.acn.repository.ConstituencyRepository;
 import it.gov.acn.repository.MockKafkaBrokerRepository;
 import it.gov.acn.service.ConstituencyService;
@@ -29,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest(properties = {
     "acn.outbox.scheduler.enabled=true",
@@ -51,7 +54,10 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
   @SpyBean
   private MockKafkaBrokerRepository mockKafkaBrokerRepository;
 
-  @Autowired
+  @SpyBean
+  private OutboxScheduler outboxScheduler;
+
+  @SpyBean
   private DataProvider dataProvider;
 
 
@@ -59,6 +65,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
   public void afterEach() {
     jdbcTemplate.execute("TRUNCATE TABLE "+ DefaultConfiguration.TABLE_NAME);
     mockKafkaBrokerRepository.deleteAll();
+    constituencyRepository.deleteAll();
   }
 
   @Test
@@ -73,7 +80,43 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
   }
 
   @Test
-  void when_saveConstituency_then_scheduler_fails_db_exception_succeeds_second_time(){
+  void when_process_outbox_throws_exception_then_scheduling_continues(){
+
+    // simulate the .process() method rethrowing a runtime exception
+    Mockito.doThrow(new RuntimeException("Test exception")).when(dataProvider)
+        .find(Mockito.anyBoolean(), Mockito.anyInt());
+
+    Constituency constituency = TestUtils.createTestConstituency();
+    constituencyService.saveConstituency(constituency);
+
+    Awaitility.await()
+        .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
+        .untilAsserted(() ->
+            Mockito.verify(dataProvider, Mockito.times(1)).find(Mockito.anyBoolean(), Mockito.anyInt(), Mockito.any())
+        );
+
+    Mockito.reset(dataProvider);
+
+    Assertions.assertEquals(0, findCompletedOutboxItems().size());
+    List<OutboxItem> notCompletedOutboxItems = findNotCompletedOutboxItems();
+    Assertions.assertEquals(1, notCompletedOutboxItems.size());
+    OutboxItem outboxItem = notCompletedOutboxItems.get(0);
+
+    Awaitility.await()
+        .atMost(calculateBackoff(outboxItem)
+            .plus(5, ChronoUnit.SECONDS)
+        )
+        .untilAsserted(() ->
+            Assertions.assertEquals(1, findCompletedOutboxItems().size())
+        );
+
+    Assertions.assertEquals(0, findNotCompletedOutboxItems().size());
+
+  }
+
+  @Test
+  void when_saveConstituency_then_scheduler_fails_db_exception_succeeds_second_time()
+      throws InterruptedException {
     Mockito.doThrow(new RuntimeException("DB test exception")).when(mockKafkaBrokerRepository).save(Mockito.any());
 
     Instant now = Instant.now();
@@ -86,6 +129,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
             Mockito.verify(mockKafkaBrokerRepository, Mockito.times(1)).save(Mockito.any())
         );
 
+    Thread.sleep(500);
     Assertions.assertEquals(0, findCompletedOutboxItems().size());
     List<OutboxItem> notCompletedOutboxItems = findNotCompletedOutboxItems();
     Assertions.assertEquals(1, notCompletedOutboxItems.size());
@@ -101,10 +145,9 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
             .plus(5, ChronoUnit.SECONDS)
         )
         .untilAsserted(() ->
-            Mockito.verify(mockKafkaBrokerRepository, Mockito.times(1)).save(Mockito.any())
+            Assertions.assertEquals(0, findNotCompletedOutboxItems().size())
         );
 
-    Assertions.assertEquals(0, findNotCompletedOutboxItems().size());
     List<OutboxItem> completedOutboxItems = findCompletedOutboxItems();
     Assertions.assertEquals(1, completedOutboxItems.size());
     Assertions.assertEquals("DB test exception", completedOutboxItems.get(0).getLastError());
@@ -113,7 +156,8 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
   }
 
   @Test
-  void when_saveConstituency_then_scheduler_fails_3_times_outbox_item_not_picked_up_ever_again(){
+  void when_saveConstituency_then_scheduler_fails_3_times_outbox_item_not_picked_up_ever_again()
+      throws InterruptedException {
     Mockito.doThrow(new RuntimeException("DB test exception")).when(mockKafkaBrokerRepository).save(Mockito.any());
 
     Instant now = Instant.now();
@@ -125,6 +169,8 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
         .untilAsserted(() ->
             Mockito.verify(mockKafkaBrokerRepository, Mockito.times(1)).save(Mockito.any())
         );
+
+    Thread.sleep(500);
 
     Assertions.assertEquals(0, findCompletedOutboxItems().size());
     List<OutboxItem> notCompletedOutboxItems = findNotCompletedOutboxItems();
@@ -142,6 +188,8 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
             Mockito.verify(mockKafkaBrokerRepository, Mockito.times(2)).save(Mockito.any())
         );
 
+    Thread.sleep(500);
+
     Assertions.assertEquals(0, findCompletedOutboxItems().size());
     notCompletedOutboxItems = findNotCompletedOutboxItems();
     Assertions.assertEquals(1, notCompletedOutboxItems.size());
@@ -158,6 +206,8 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
         .untilAsserted(() ->
             Mockito.verify(mockKafkaBrokerRepository, Mockito.times(3)).save(Mockito.any())
         );
+
+    Thread.sleep(500);
 
     Assertions.assertEquals(0, findCompletedOutboxItems().size());
     notCompletedOutboxItems = findNotCompletedOutboxItems();
