@@ -1,12 +1,14 @@
 package it.gov.acn;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.acn.autoconfigure.outbox.config.DefaultConfiguration;
 import it.gov.acn.integration.KafkaTemplate;
 import it.gov.acn.model.Constituency;
-import it.gov.acn.outbox.core.processor.OutboxProcessor;
+import it.gov.acn.model.ConstituencyCreatedEvent;
+import it.gov.acn.model.MockKafkaBrokerMessage;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.scheduler.OutboxScheduler;
@@ -18,26 +20,32 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.StreamSupport;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest(properties = {
     "acn.outbox.scheduler.enabled=true",
     "acn.outbox.scheduler.fixed-delay=3000",
-    "acn.outbox.scheduler.backoff-base=1"
+    "acn.outbox.scheduler.backoff-base=1",
+    "logging.level.it.gov.acn=TRACE"
 })
 @ExtendWith(MockitoExtension.class)
 public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
@@ -228,8 +236,175 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
         .untilAsserted(() ->
             Mockito.verify(kafkaTemplate, Mockito.times(0)).send(Mockito.any())
         );
+  }
+
+  @Test
+  void given_kafka_down_when_save_multiple_constituency_then_kafka_up_again_messages_are_delivered_in_order()
+      throws InterruptedException, JsonProcessingException {
+    Mockito.doThrow(new RuntimeException("Kafka Exception")).when(kafkaTemplate).send(Mockito.any());
+
+    Instant now = Instant.now();
+    Constituency constituency1 = TestUtils.createTestConstituency();
+    Constituency constituency2 = TestUtils.createTestConstituency();
+    Constituency constituency3 = TestUtils.createTestConstituency();
+
+    constituencyService.saveConstituency(constituency1);
+    Thread.sleep(100);
+    constituencyService.saveConstituency(constituency2);
+    Thread.sleep(100);
+    constituencyService.saveConstituency(constituency3);
+
+    Awaitility.await()
+        .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
+        .untilAsserted(() ->
+            Mockito.verify(kafkaTemplate, Mockito.times(3)).send(Mockito.any())
+        );
 
 
+    List<OutboxItem> notCompletedOutboxItems = findNotCompletedOutboxItems();
+    Assertions.assertEquals(3, notCompletedOutboxItems.size());
+    Assertions.assertEquals("Kafka Exception", notCompletedOutboxItems.get(0).getLastError());
+    Assertions.assertEquals("Kafka Exception", notCompletedOutboxItems.get(1).getLastError());
+    Assertions.assertEquals("Kafka Exception", notCompletedOutboxItems.get(2).getLastError());
+
+    Mockito.reset(kafkaTemplate);
+
+    Awaitility.await()
+        .atMost(calculateBackoff(notCompletedOutboxItems.get(2))
+            .plus(5, ChronoUnit.SECONDS)
+        )
+        .untilAsserted(() ->
+            Mockito.verify(kafkaTemplate, Mockito.times(3)).send(Mockito.any())
+        );
+
+    Thread.sleep(500);
+    Assertions.assertEquals(0, findNotCompletedOutboxItems().size());
+    List<OutboxItem> completedOutboxItems = findCompletedOutboxItems();
+    Assertions.assertEquals(3, completedOutboxItems.size());
+
+    List<MockKafkaBrokerMessage> messages = this.oderByOriginalEventCreationDate(
+        StreamSupport.stream(
+            this.mockKafkaBrokerRepository.findAll().spliterator(),
+            false
+        ).toList()
+    );
+
+    ConstituencyCreatedEvent event = objectMapper.readValue(messages.get(0).getPayload()
+        , ConstituencyCreatedEvent.class);
+    Assertions.assertEquals("ConstituencyCreatedEvent", event.getEventType());
+    Assertions.assertEquals(constituency1.getId(), event.getPayload().getId());
+
+    event = objectMapper.readValue(messages.get(1).getPayload()
+        , ConstituencyCreatedEvent.class);
+    Assertions.assertEquals("ConstituencyCreatedEvent", event.getEventType());
+    Assertions.assertEquals(constituency2.getId(), event.getPayload().getId());
+
+    event = objectMapper.readValue(messages.get(2).getPayload()
+        , ConstituencyCreatedEvent.class);
+    Assertions.assertEquals("ConstituencyCreatedEvent", event.getEventType());
+    Assertions.assertEquals(constituency3.getId(), event.getPayload().getId());
+
+  }
+
+  @Test
+  void given_multiple_constituencies_when_kafka_fails_randomly_then_events_are_received_in_order() throws InterruptedException, JsonProcessingException {
+
+    AtomicInteger failures = new AtomicInteger();
+
+    Mockito.doAnswer(new Answer<String>() {
+      @Override
+      public String answer(InvocationOnMock invocation) throws Throwable {
+        if (new Random().nextBoolean()) {
+          failures.incrementAndGet();
+          throw new RuntimeException("Kafka Exception");
+        } else {
+          invocation.callRealMethod();
+        }
+        return null;
+      }
+    }).when(kafkaTemplate).send(Mockito.any());
+
+    // Create and save multiple constituencies
+    Constituency constituency1 = TestUtils.createTestConstituency();
+    Constituency constituency2 = TestUtils.createTestConstituency();
+    Constituency constituency3 = TestUtils.createTestConstituency();
+    Constituency constituency4 = TestUtils.createTestConstituency();
+    Constituency constituency5 = TestUtils.createTestConstituency();
+
+    constituencyService.saveConstituency(constituency1);
+    constituencyService.saveConstituency(constituency2);
+    constituencyService.saveConstituency(constituency3);
+    constituencyService.saveConstituency(constituency4);
+    constituencyService.saveConstituency(constituency5);
+
+    // Use Awaitility to wait the fixed delay plus a little extra time
+    Awaitility.await()
+        .atMost(fixedDelay+2000, TimeUnit.MILLISECONDS)
+        .untilAsserted(() ->
+            Mockito.verify(kafkaTemplate, Mockito.times(5)).send(Mockito.any())
+        );
+
+    // Retrieve all the messages from the mock Kafka broker repository, the failed ones must be missing
+    List<MockKafkaBrokerMessage> messages = this.oderByOriginalEventCreationDate(
+        StreamSupport.stream(
+            this.mockKafkaBrokerRepository.findAll().spliterator(),
+            false
+        ).toList()
+    );
+
+    Assertions.assertEquals(5-failures.get(), messages.size());
+
+    // Reset the mock to simulate a successful send
+    Mockito.reset(kafkaTemplate);
+
+    List<OutboxItem> notCompletedOutboxItems = findNotCompletedOutboxItems();
+
+    // Use Awaitility to wait the next run of the scheduler
+    Awaitility.await()
+        .atMost(calculateBackoff(notCompletedOutboxItems.get(0))
+            .plus(5, ChronoUnit.SECONDS)
+        )
+        .untilAsserted(() ->
+            Mockito.verify(kafkaTemplate, Mockito.times(failures.get())).send(Mockito.any())
+        );
+
+    Thread.sleep(1000);
+
+    messages = this.oderByOriginalEventCreationDate(
+        StreamSupport.stream(
+            this.mockKafkaBrokerRepository.findAll().spliterator(),
+            false
+        ).toList()
+    );
+
+    // Assert that the messages are in the correct order
+    ConstituencyCreatedEvent event1 = objectMapper.readValue(messages.get(0).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event2 = objectMapper.readValue(messages.get(1).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event3 = objectMapper.readValue(messages.get(2).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event4 = objectMapper.readValue(messages.get(3).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event5 = objectMapper.readValue(messages.get(4).getPayload(), ConstituencyCreatedEvent.class);
+
+    Assertions.assertEquals(constituency1.getId(), event1.getPayload().getId());
+    Assertions.assertEquals(constituency2.getId(), event2.getPayload().getId());
+    Assertions.assertEquals(constituency3.getId(), event3.getPayload().getId());
+    Assertions.assertEquals(constituency4.getId(), event4.getPayload().getId());
+    Assertions.assertEquals(constituency5.getId(), event5.getPayload().getId());
+  }
+
+
+  private List<MockKafkaBrokerMessage> oderByOriginalEventCreationDate(List<MockKafkaBrokerMessage> messages){
+    List<MockKafkaBrokerMessage> mutable = new ArrayList<>(messages);
+    mutable.sort((a,b)->{
+      try {
+        ConstituencyCreatedEvent eventA = objectMapper.readValue(a.getPayload(), ConstituencyCreatedEvent.class);
+        ConstituencyCreatedEvent eventB = objectMapper.readValue(b.getPayload(), ConstituencyCreatedEvent.class);
+        return eventA.getTimestamp().compareTo(eventB.getTimestamp());
+      } catch (JsonProcessingException e) {
+        e.printStackTrace();
+        return 0;
+      }
+    });
+    return mutable;
   }
 
   private List<OutboxItem> findAllOutboxItems(){
