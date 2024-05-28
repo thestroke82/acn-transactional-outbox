@@ -69,6 +69,8 @@ public class MyOutboxItemHandlerProvider implements OutboxItemHandlerProvider {
     }
 }
 ```
+__Important__: Ensure that any exceptions encountered during event handling are thrown or rethrown so that the outbox knows the sending didn't succeed and should be retried in future runs.
+
 
 ### Using OutboxEventRecorder
 
@@ -97,7 +99,6 @@ public class MyBusinessService {
 }
 
 ```
-__Important__: Ensure that any exceptions encountered during event handling are thrown or rethrown so that the outbox knows the sending didn't succeed and should be retried in future runs.
 
 
 
