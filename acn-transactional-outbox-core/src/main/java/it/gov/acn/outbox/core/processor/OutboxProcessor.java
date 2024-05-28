@@ -41,11 +41,10 @@ public class OutboxProcessor {
         outstandingItems = this.outboxItemSelectionStrategy.execute(outstandingItems);
 
         if(outstandingItems.isEmpty()){
-            logger.trace("No outbox items to process. See you later!");
             return;
         }
 
-        logger.trace("Kafka outbox scheduler processing {} items", outstandingItems.size());
+        logger.trace("Outbox scheduler processing {} items", outstandingItems.size());
 
         // that's the actual processing of the outbox items
         outstandingItems.forEach(this::processOutboxItem);
