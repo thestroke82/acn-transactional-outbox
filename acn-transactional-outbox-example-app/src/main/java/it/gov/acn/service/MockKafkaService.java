@@ -2,8 +2,9 @@ package it.gov.acn.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.gov.acn.integration.KafkaTemplate;
 import it.gov.acn.model.ConstituencyCreatedEvent;
-import it.gov.acn.model.MockKafkaBroker;
+import it.gov.acn.model.MockKafkaBrokerMessage;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.repository.MockKafkaBrokerRepository;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class MockKafkaService implements OutboxItemHandlerProvider {
-    private final MockKafkaBrokerRepository mockKafkaBrokerRepository;
+    private final KafkaTemplate kafkaTemplate;
     private final ObjectMapper jacksonObjectMapper;
 
     @Override
@@ -31,12 +32,12 @@ public class MockKafkaService implements OutboxItemHandlerProvider {
           } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
           }
-          MockKafkaBroker mockKafkaBroker = MockKafkaBroker.builder()
-                    .id(UUID.fromString(event.getEventId()))
-                    .creationDate(Instant.now())
-                    .payload(outboxItem.getEvent())
-                    .build();
-            mockKafkaBrokerRepository.save(mockKafkaBroker);
+          MockKafkaBrokerMessage mockKafkaBrokerMessage = MockKafkaBrokerMessage.builder()
+                  .id(UUID.fromString(event.getEventId()))
+                  .creationDate(Instant.now())
+                  .payload(outboxItem.getEvent())
+                  .build();
+          kafkaTemplate.send(mockKafkaBrokerMessage);
         }else{
             throw  new UnsupportedOperationException("Event type not supported: "+outboxItem.getEventType());
         }

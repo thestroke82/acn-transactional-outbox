@@ -4,6 +4,7 @@ package it.gov.acn;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.acn.autoconfigure.outbox.config.DefaultConfiguration;
+import it.gov.acn.integration.KafkaTemplate;
 import it.gov.acn.model.Constituency;
 import it.gov.acn.outbox.core.processor.OutboxProcessor;
 import it.gov.acn.outbox.model.DataProvider;
@@ -53,6 +54,9 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
 
   @SpyBean
   private MockKafkaBrokerRepository mockKafkaBrokerRepository;
+  
+  @SpyBean
+  private KafkaTemplate kafkaTemplate;
 
   @SpyBean
   private OutboxScheduler outboxScheduler;
@@ -117,7 +121,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
   @Test
   void when_saveConstituency_then_scheduler_fails_db_exception_succeeds_second_time()
       throws InterruptedException {
-    Mockito.doThrow(new RuntimeException("DB test exception")).when(mockKafkaBrokerRepository).save(Mockito.any());
+    Mockito.doThrow(new RuntimeException("Kafka Exception")).when(kafkaTemplate).send(Mockito.any());
 
     Instant now = Instant.now();
     Constituency constituency = TestUtils.createTestConstituency();
@@ -126,19 +130,19 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
     Awaitility.await()
         .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
         .untilAsserted(() ->
-            Mockito.verify(mockKafkaBrokerRepository, Mockito.times(1)).save(Mockito.any())
+            Mockito.verify(kafkaTemplate, Mockito.times(1)).send(Mockito.any())
         );
 
     Thread.sleep(500);
     Assertions.assertEquals(0, findCompletedOutboxItems().size());
     List<OutboxItem> notCompletedOutboxItems = findNotCompletedOutboxItems();
     Assertions.assertEquals(1, notCompletedOutboxItems.size());
-    Assertions.assertEquals("DB test exception", notCompletedOutboxItems.get(0).getLastError());
+    Assertions.assertEquals("Kafka Exception", notCompletedOutboxItems.get(0).getLastError());
     Assertions.assertNotNull(notCompletedOutboxItems.get(0).getLastAttemptDate());
     Assertions.assertTrue(notCompletedOutboxItems.get(0).getLastAttemptDate().isAfter(now));
     Assertions.assertNull(notCompletedOutboxItems.get(0).getCompletionDate());
 
-    Mockito.reset(mockKafkaBrokerRepository);
+    Mockito.reset(kafkaTemplate);
 
     Awaitility.await()
         .atMost(calculateBackoff(notCompletedOutboxItems.get(0))
@@ -150,7 +154,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
 
     List<OutboxItem> completedOutboxItems = findCompletedOutboxItems();
     Assertions.assertEquals(1, completedOutboxItems.size());
-    Assertions.assertEquals("DB test exception", completedOutboxItems.get(0).getLastError());
+    Assertions.assertEquals("Kafka Exception", completedOutboxItems.get(0).getLastError());
     Assertions.assertNotNull(completedOutboxItems.get(0).getLastAttemptDate());
     Assertions.assertNotNull(completedOutboxItems.get(0).getCompletionDate());
   }
@@ -158,7 +162,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
   @Test
   void when_saveConstituency_then_scheduler_fails_3_times_outbox_item_not_picked_up_ever_again()
       throws InterruptedException {
-    Mockito.doThrow(new RuntimeException("DB test exception")).when(mockKafkaBrokerRepository).save(Mockito.any());
+    Mockito.doThrow(new RuntimeException("Kafka Exception")).when(kafkaTemplate).send(Mockito.any());
 
     Instant now = Instant.now();
     Constituency constituency = TestUtils.createTestConstituency();
@@ -167,7 +171,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
     Awaitility.await()
         .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
         .untilAsserted(() ->
-            Mockito.verify(mockKafkaBrokerRepository, Mockito.times(1)).save(Mockito.any())
+            Mockito.verify(kafkaTemplate, Mockito.times(1)).send(Mockito.any())
         );
 
     Thread.sleep(500);
@@ -176,7 +180,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
     List<OutboxItem> notCompletedOutboxItems = findNotCompletedOutboxItems();
     Assertions.assertEquals(1, notCompletedOutboxItems.size());
     OutboxItem outboxItem = notCompletedOutboxItems.get(0);
-    Assertions.assertEquals("DB test exception", outboxItem.getLastError());
+    Assertions.assertEquals("Kafka Exception", outboxItem.getLastError());
     Assertions.assertNotNull(outboxItem.getLastAttemptDate());
     Assertions.assertNull(outboxItem.getCompletionDate());
 
@@ -185,7 +189,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
             .plus(5, ChronoUnit.SECONDS)
         )
         .untilAsserted(() ->
-            Mockito.verify(mockKafkaBrokerRepository, Mockito.times(2)).save(Mockito.any())
+            Mockito.verify(kafkaTemplate, Mockito.times(2)).send(Mockito.any())
         );
 
     Thread.sleep(500);
@@ -194,7 +198,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
     notCompletedOutboxItems = findNotCompletedOutboxItems();
     Assertions.assertEquals(1, notCompletedOutboxItems.size());
     outboxItem = notCompletedOutboxItems.get(0);
-    Assertions.assertEquals("DB test exception", outboxItem.getLastError());
+    Assertions.assertEquals("Kafka Exception", outboxItem.getLastError());
     Assertions.assertNotNull(outboxItem.getLastAttemptDate());
     Assertions.assertNull(outboxItem.getCompletionDate());
 
@@ -204,7 +208,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
             .plus(5, ChronoUnit.SECONDS)
         )
         .untilAsserted(() ->
-            Mockito.verify(mockKafkaBrokerRepository, Mockito.times(3)).save(Mockito.any())
+            Mockito.verify(kafkaTemplate, Mockito.times(3)).send(Mockito.any())
         );
 
     Thread.sleep(500);
@@ -213,16 +217,16 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
     notCompletedOutboxItems = findNotCompletedOutboxItems();
     Assertions.assertEquals(1, notCompletedOutboxItems.size());
     outboxItem = notCompletedOutboxItems.get(0);
-    Assertions.assertEquals("DB test exception", outboxItem.getLastError());
+    Assertions.assertEquals("Kafka Exception", outboxItem.getLastError());
     Assertions.assertNotNull(outboxItem.getLastAttemptDate());
     Assertions.assertNull(outboxItem.getCompletionDate());
 
-    Mockito.reset(mockKafkaBrokerRepository);
+    Mockito.reset(kafkaTemplate);
 
     Awaitility.await()
         .atMost(calculateBackoff(notCompletedOutboxItems.get(0)).multipliedBy(2))
         .untilAsserted(() ->
-            Mockito.verify(mockKafkaBrokerRepository, Mockito.times(0)).save(Mockito.any())
+            Mockito.verify(kafkaTemplate, Mockito.times(0)).send(Mockito.any())
         );
 
 
