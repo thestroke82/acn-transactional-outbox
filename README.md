@@ -22,9 +22,9 @@ To use `acn-outbox-starter`, add the following dependency to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>com.example</groupId>
+    <groupId>it.gov.acn</groupId>
     <artifactId>acn-outbox-starter</artifactId>
-    <version>1.0.0</version>
+    <version>?.?.?</version>
 </dependency>
 ```
 
@@ -48,6 +48,11 @@ CREATE TABLE IF NOT EXISTS transactional_outbox (
 - **Shedlock**: This starter requires Shedlock for handling locks, so ensure the Shedlock table is created as [prescribed by Shedlock](https://github.com/lukas-krecan/ShedLock?tab=readme-ov-file#jdbctemplate).
 
 ## Usage
+
+There are only two things the client app needs to do:
+
+1. Implement the `OutboxItemHandlerProvider` interface to handle the outbox items. The outbox items are those that are retrieved at each outbox run, according to the configuration provided.
+2. Use the `OutboxEventRecorder` bean to record events into the outbox.
 
 ### Implementing OutboxItemHandlerProvider
 
@@ -90,7 +95,15 @@ public class MyBusinessService {
     outboxEventRecorder.recordEvent(something, "SomethingCreatedEvent");
   }
 }
+
 ```
+__Important__: Ensure that any exceptions encountered during event handling are thrown or rethrown so that the outbox knows the sending didn't succeed and should be retried in future runs.
+
+
+
+
+
+
 
 ## Features
 
