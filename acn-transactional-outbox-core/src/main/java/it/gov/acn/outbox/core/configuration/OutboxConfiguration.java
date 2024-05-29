@@ -1,6 +1,7 @@
 package it.gov.acn.outbox.core.configuration;
 
 import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.SchedulingProvider;
 import it.gov.acn.outbox.model.SerializationProvider;
@@ -44,6 +45,13 @@ public class OutboxConfiguration {
     private SerializationProvider serializationProvider;
 
     /**
+     * The locking provider to use for locking outbox processing. So if multiple instances of the
+     * application are running, only one will process the outbox at a time.
+     */
+    private LockingProvider lockingProvider;
+
+
+    /**
      * The outbox item handler provider to use for handling outbox items.
      */
     private OutboxItemHandlerProvider outboxItemHandlerProvider;
@@ -63,6 +71,7 @@ public class OutboxConfiguration {
         private DataProvider dataProvider;
         private SchedulingProvider schedulingProvider;
         private SerializationProvider serializationProvider;
+        private LockingProvider lockingProvider;
         private OutboxItemHandlerProvider outboxItemHandlerProvider;
 
         public Builder fixedDelay(long fixedDelay) {
@@ -95,6 +104,11 @@ public class OutboxConfiguration {
             return this;
         }
 
+        public Builder lockingProvider(LockingProvider lockingProvider) {
+            this.lockingProvider = lockingProvider;
+            return this;
+        }
+
         public Builder outboxItemHandlerProvider(OutboxItemHandlerProvider outboxItemHandlerProvider) {
             this.outboxItemHandlerProvider = outboxItemHandlerProvider;
             return this;
@@ -108,6 +122,7 @@ public class OutboxConfiguration {
             config.dataProvider = this.dataProvider;
             config.schedulingProvider = this.schedulingProvider;
             config.serializationProvider = this.serializationProvider;
+            config.lockingProvider = this.lockingProvider;
             config.outboxItemHandlerProvider = this.outboxItemHandlerProvider;
             return config;
         }
@@ -137,6 +152,9 @@ public class OutboxConfiguration {
         return serializationProvider;
     }
 
+    public LockingProvider getLockingProvider() {
+        return lockingProvider;
+    }
     public OutboxItemHandlerProvider getOutboxItemHandlerProvider() {
         return outboxItemHandlerProvider;
     }
@@ -151,6 +169,7 @@ public class OutboxConfiguration {
                 ", schedulingProvider=" + schedulingProvider.getClass().getSimpleName() +
                 ", serializationProvider=" + serializationProvider.getClass().getSimpleName() +
                 ", outboxItemHandlerProvider=" + outboxItemHandlerProvider.getClass().getSimpleName() +
+                ", lockingProvider=" + lockingProvider.getClass().getSimpleName() +
                 '}';
     }
 }

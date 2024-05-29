@@ -3,6 +3,7 @@ package it.gov.acn.autoconfigure.outbox.config;
 import it.gov.acn.autoconfigure.outbox.condition.ContextValidCondition;
 import it.gov.acn.autoconfigure.outbox.condition.StarterEnabled;
 import it.gov.acn.autoconfigure.outbox.providers.data.postgres.PostgresJdbcDataProvider;
+import it.gov.acn.autoconfigure.outbox.providers.locking.SchedlockLockProvider;
 import it.gov.acn.autoconfigure.outbox.providers.scheduling.TaskSchedulerSchedulingProvider;
 import it.gov.acn.autoconfigure.outbox.providers.serialization.JacksonSerializationProvider;
 import it.gov.acn.outbox.core.recorder.DatabaseOutboxEventRecorder;
@@ -10,10 +11,13 @@ import it.gov.acn.outbox.core.recorder.DummyOutboxEventRecorder;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.core.recorder.OutboxEventRecorder;
 import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.SchedulingProvider;
 import it.gov.acn.outbox.model.SerializationProvider;
 import it.gov.acn.outbox.scheduler.OutboxScheduler;
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -26,6 +30,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -97,6 +102,30 @@ public class OutboxAutoconfiguration {
         return new JacksonSerializationProvider();
     }
 
+
+    // if the application is already using shedlock there is a chance that has
+    // already a lock provider, so we can reuse it
+    @Bean
+    @Conditional({
+        StarterEnabled.class,
+        ContextValidCondition.class
+    })
+    @ConditionalOnMissingBean(LockProvider.class)
+    public LockProvider lockProvider(DataSource dataSource){
+        return new JdbcTemplateLockProvider(dataSource);
+    }
+
+    // a locking provider is needed by the core to lock the outbox processor
+    @Bean
+    @Conditional({
+        StarterEnabled.class,
+        ContextValidCondition.class
+    })
+    public LockingProvider lockingProvider(LockProvider lockProvider){
+        // TODO: Factory method to create a LockingProvider, for now there is only one implementation
+        return new SchedlockLockProvider(lockProvider);
+    }
+
     // a last provider is needed: outbox item provider to handle the outbox items
     // note: this provider must be implemented by the !client code! at this point we have
     // already checked that an implementation is present in the context
@@ -134,13 +163,14 @@ public class OutboxAutoconfiguration {
             DataProvider.class,
             SchedulingProvider.class,
             SerializationProvider.class,
-
+            LockingProvider.class,
     })
     public OutboxScheduler transactionalOutboxScheduler(
             OutboxProperties transactionalOutboxProperties,
             DataProvider dataProvider,
             SchedulingProvider schedulingProvider,
             SerializationProvider serializationProvider,
+            LockingProvider lockingProvider,
             OutboxItemHandlerProvider outboxItemHandlerProvider
     ){
         logger.debug("Transactional Outbox Starter configuration details: {}",transactionalOutboxProperties);
@@ -151,6 +181,7 @@ public class OutboxAutoconfiguration {
                 .dataProvider(dataProvider)
                 .schedulingProvider(schedulingProvider)
                 .serializationProvider(serializationProvider)
+                .lockingProvider(lockingProvider)
                 .outboxItemHandlerProvider(outboxItemHandlerProvider)
                 .build();
         return new OutboxScheduler(outboxConfiguration);

@@ -3,6 +3,7 @@ package it.gov.acn.outbox.core.processor;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -10,10 +11,12 @@ import static org.mockito.Mockito.when;
 
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.model.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,6 +33,9 @@ public class OutboxProcessorTest {
     private DataProvider dataProvider;
 
     @Mock
+    private LockingProvider lockingProvider;
+
+    @Mock
     private OutboxItemHandlerProvider outboxItemHandlerProvider;
 
     private OutboxProcessor outboxProcessor;
@@ -39,6 +45,10 @@ public class OutboxProcessorTest {
         MockitoAnnotations.openMocks(this);
         when(outboxConfiguration.getDataProvider()).thenReturn(dataProvider);
         when(outboxConfiguration.getOutboxItemHandlerProvider()).thenReturn(outboxItemHandlerProvider);
+        when(outboxConfiguration.getLockingProvider()).thenReturn(lockingProvider);
+        when(lockingProvider.lock()).thenReturn(Optional.of("lock"));
+        doNothing().when(lockingProvider).release(any());
+
         outboxProcessor = new OutboxProcessor(outboxConfiguration);
     }
 

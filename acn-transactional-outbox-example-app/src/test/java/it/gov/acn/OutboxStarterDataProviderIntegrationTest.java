@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-// integration testing based on the sample data in db/migration/V1__outbox_table_and_sample_data.sql
+// integration testing based on the sample data in db/migration/V1__outbox_table.sql
 @SpringBootTest(properties = {
         "acn.outbox.scheduler.enabled=true",
         "acn.outbox.scheduler.fixed-delay=3000",
