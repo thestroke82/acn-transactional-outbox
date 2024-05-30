@@ -1,4 +1,4 @@
-package it.gov.acn;
+package it.gov.acn.etc;
 
 import it.gov.acn.model.Constituency;
 import java.util.UUID;

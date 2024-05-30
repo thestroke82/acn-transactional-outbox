@@ -6,10 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OutboxScheduler {
-    private Logger logger = LoggerFactory.getLogger(OutboxScheduler.class);
+    private final Logger logger = LoggerFactory.getLogger(OutboxScheduler.class);
 
-    private OutboxConfiguration outboxConfiguration;
-    private OutboxProcessor outboxProcessor;
+    private final OutboxConfiguration outboxConfiguration;
+    private final OutboxProcessor outboxProcessor;
 
     public OutboxScheduler(OutboxConfiguration outboxConfiguration) {
         this.outboxConfiguration = outboxConfiguration;

@@ -30,7 +30,7 @@ public class OutboxProcessor {
                 new ExponentialBackoffStrategy(this.outboxConfiguration.getBackoffBase());
     }
 
-    public void process(){
+    public synchronized void process(){
         Object lock = this.lockingProvider.lock().orElse(null);
         if(lock == null){
             return;
@@ -44,7 +44,8 @@ public class OutboxProcessor {
         }
     }
 
-    private void doProcess(){
+    // this represents the "critical section" and it's protected for testing purposes
+    protected void doProcess(){
         // oldest events first
         Sort sort = Sort.of(Sort.Property.CREATION_DATE, Sort.Direction.ASC);
 

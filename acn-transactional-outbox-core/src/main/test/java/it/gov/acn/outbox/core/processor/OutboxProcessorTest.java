@@ -117,4 +117,24 @@ public class OutboxProcessorTest {
         assertTrue(lastValue.getLastError().contains("Test exception"));
         assertEquals(1, lastValue.getAttempts());
     }
+
+    @Test
+    public void given_outbox_items_when_process_then_verify_locking() {
+        OutboxItem outboxItem = new OutboxItem();
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(List.of(outboxItem));
+        outboxProcessor.process();
+        verify(lockingProvider, times(1)).lock();
+        verify(lockingProvider, times(1)).release(any());
+    }
+
+    @Test
+    public void given_outbox_items_lock_taken_when_process_then_verify_skip() {
+        OutboxItem outboxItem = new OutboxItem();
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(List.of(outboxItem));
+        when(lockingProvider.lock()).thenReturn(Optional.empty());
+
+        outboxProcessor.process();
+        verify(lockingProvider, times(1)).lock();
+        verify(lockingProvider, times(0)).release(any());
+    }
 }
