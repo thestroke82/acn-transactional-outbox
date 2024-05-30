@@ -65,7 +65,7 @@ public class PostgresJdbcDataProvider implements DataProvider {
 
     @Override
     public OutboxItem findById(UUID id) {
-        OutboxItem outboxItem = null;
+        OutboxItem outboxItem;
         String sql = "SELECT " + OutboxSqlColumns.getAllColumns() +
                 " FROM transactional_outbox WHERE id = ?";
 
@@ -150,28 +150,32 @@ public class PostgresJdbcDataProvider implements DataProvider {
     }
 
     private String getColumnName(Sort.Property property) {
-        switch (property) {
-            case CREATION_DATE:
-                return OutboxSqlColumns.CREATION_DATE.getColumnName();
-            case LAST_ATTEMPT_DATE:
-                return OutboxSqlColumns.LAST_ATTEMPT_DATE.getColumnName();
-            case COMPLETION_DATE:
-                return OutboxSqlColumns.COMPLETION_DATE.getColumnName();
-            case ATTEMPTS:
-                return OutboxSqlColumns.ATTEMPTS.getColumnName();
-            default:
-                throw new IllegalArgumentException("Unexpected value: " + property);
+      switch (property) {
+        case CREATION_DATE -> {
+          return OutboxSqlColumns.CREATION_DATE.getColumnName();
         }
+        case LAST_ATTEMPT_DATE -> {
+          return OutboxSqlColumns.LAST_ATTEMPT_DATE.getColumnName();
+        }
+        case COMPLETION_DATE -> {
+          return OutboxSqlColumns.COMPLETION_DATE.getColumnName();
+        }
+        case ATTEMPTS -> {
+          return OutboxSqlColumns.ATTEMPTS.getColumnName();
+        }
+        default -> throw new IllegalArgumentException("Unexpected value: " + property);
+      }
     }
     private String getDirection(Sort.Direction direction) {
-        switch (direction) {
-            case ASC:
-                return "ASC";
-            case DESC:
-                return "DESC";
-            default:
-                throw new IllegalArgumentException("Unexpected value: " + direction);
+      switch (direction) {
+        case ASC -> {
+          return "ASC";
         }
+        case DESC -> {
+          return "DESC";
+        }
+        default -> throw new IllegalArgumentException("Unexpected value: " + direction);
+      }
     }
     private OutboxItem mapResultSetToOutboxItem(ResultSet resultSet) throws SQLException {
         OutboxItem item = new OutboxItem();

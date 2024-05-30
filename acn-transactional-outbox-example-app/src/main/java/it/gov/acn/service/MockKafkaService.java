@@ -7,12 +7,10 @@ import it.gov.acn.model.ConstituencyCreatedEvent;
 import it.gov.acn.model.MockKafkaBrokerMessage;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
-import it.gov.acn.repository.MockKafkaBrokerRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class MockKafkaService implements OutboxItemHandlerProvider {
             return;
         }
         if(outboxItem.getEventType().equals(ConstituencyCreatedEvent.EVENT_TYPE_LITERAL)) {
-          ConstituencyCreatedEvent event = null;
+          ConstituencyCreatedEvent event;
           try {
             event = jacksonObjectMapper.readValue(outboxItem.getEvent(), ConstituencyCreatedEvent.class);
           } catch (JsonProcessingException e) {

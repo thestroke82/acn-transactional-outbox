@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledFuture;
 
 public class TaskSchedulerSchedulingProvider implements SchedulingProvider {
-    private TaskScheduler taskScheduler;
+    private final TaskScheduler taskScheduler;
 
     public TaskSchedulerSchedulingProvider(TaskScheduler taskScheduler) {
         this.taskScheduler = taskScheduler;

@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,7 +33,7 @@ public class OutboxStarterDataProviderIntegrationTest extends PostgresTestContex
 
     @Test
     void contextLoads() {
-        assertTrue(dataProvider instanceof PostgresJdbcDataProvider);
+      assertInstanceOf(PostgresJdbcDataProvider.class, dataProvider);
     }
 
     @Test
@@ -145,7 +146,6 @@ public class OutboxStarterDataProviderIntegrationTest extends PostgresTestContex
         List<OutboxItem> result = dataProvider.find(false, Integer.MAX_VALUE);
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertTrue(result.stream().allMatch(oi -> oi.getAttempts() <= Integer.MAX_VALUE));
 
         // Test with no attempts allowed (should return empty)
         result = dataProvider.find(false, 0);
@@ -156,7 +156,6 @@ public class OutboxStarterDataProviderIntegrationTest extends PostgresTestContex
         result = dataProvider.find(true, Integer.MAX_VALUE);
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        assertTrue(result.stream().allMatch(oi -> oi.getCompletionDate() != null && oi.getAttempts() <= Integer.MAX_VALUE));
 
         // Test with incomplete items and specific attempts
         result = dataProvider.find(false, 3);

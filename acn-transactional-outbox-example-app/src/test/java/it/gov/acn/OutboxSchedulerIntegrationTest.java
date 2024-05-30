@@ -311,17 +311,14 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
 
     AtomicInteger failures = new AtomicInteger();
 
-    Mockito.doAnswer(new Answer<String>() {
-      @Override
-      public String answer(InvocationOnMock invocation) throws Throwable {
-        if (new Random().nextBoolean()) {
-          failures.incrementAndGet();
-          throw new RuntimeException("Kafka Exception");
-        } else {
-          invocation.callRealMethod();
-        }
-        return null;
+    Mockito.doAnswer((Answer<String>) invocation -> {
+      if (new Random().nextBoolean()) {
+        failures.incrementAndGet();
+        throw new RuntimeException("Kafka Exception");
+      } else {
+        invocation.callRealMethod();
       }
+      return null;
     }).when(kafkaTemplate).send(Mockito.any());
 
     // Create and save multiple constituencies

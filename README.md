@@ -130,13 +130,13 @@ acn:
 
 ### Configuration Properties
 
-| Property                          | Description                                                                                                      | Default Value          |
-|-----------------------------------|------------------------------------------------------------------------------------------------------------------|------------------------|
-| `acn.outbox.scheduler.enabled`    | Enable or disable the outbox scheduler.                                                                          | `false`                |
-| `acn.outbox.scheduler.table-name` | The name of the database table used for the outbox.                                                              | `transactional_outbox` |
-| `acn.outbox.scheduler.fixed-delay`| Fixed delay in milliseconds between the end of the last invocation and the start of the next.                    | `60000` (60 seconds)   |
-| `acn.outbox.scheduler.max-attempts`| The maximum number of attempts to process an item from the outbox, after which it will no longer be processed.   | `3`                    |
-| `acn.outbox.scheduler.backoff-base`| The base value for the backoff calculation in minutes. See the example below for how backoff is calculated.      | `5` (minutes)          |
+| Property                            | Description                                                                                                    | Default Value          |
+|-------------------------------------|----------------------------------------------------------------------------------------------------------------|------------------------|
+| `acn.outbox.scheduler.enabled`      | Enable or disable the outbox scheduler.                                                                        | `false`                |
+| `acn.outbox.scheduler.table-name`   | The name of the database table used for the outbox.                                                            | `transactional_outbox` |
+| `acn.outbox.scheduler.fixed-delay`  | Fixed delay in milliseconds between the end of the last invocation and the start of the next.                  | `60000` (60 seconds)   |
+| `acn.outbox.scheduler.max-attempts` | The maximum number of attempts to process an item from the outbox, after which it will no longer be processed. | `3`                    |
+| `acn.outbox.scheduler.backoff-base` | The base value for the backoff calculation in minutes. See the example below for how backoff is calculated.    | `5` (minutes)          |
 
 #### Backoff Calculation Example
 

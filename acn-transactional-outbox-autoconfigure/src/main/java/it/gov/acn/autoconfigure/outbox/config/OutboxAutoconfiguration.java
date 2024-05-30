@@ -6,9 +6,9 @@ import it.gov.acn.autoconfigure.outbox.providers.data.postgres.PostgresJdbcDataP
 import it.gov.acn.autoconfigure.outbox.providers.locking.SchedlockLockProvider;
 import it.gov.acn.autoconfigure.outbox.providers.scheduling.TaskSchedulerSchedulingProvider;
 import it.gov.acn.autoconfigure.outbox.providers.serialization.JacksonSerializationProvider;
+import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.core.recorder.DatabaseOutboxEventRecorder;
 import it.gov.acn.outbox.core.recorder.DummyOutboxEventRecorder;
-import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.core.recorder.OutboxEventRecorder;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.LockingProvider;
@@ -16,6 +16,7 @@ import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.SchedulingProvider;
 import it.gov.acn.outbox.model.SerializationProvider;
 import it.gov.acn.outbox.scheduler.OutboxScheduler;
+import javax.sql.DataSource;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import org.slf4j.Logger;
@@ -30,11 +31,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import javax.sql.DataSource;
 
 @AutoConfiguration(after= {
         BulkheadAutoConfiguration.class,
@@ -144,7 +142,7 @@ public class OutboxAutoconfiguration {
     }
 
     // We set up a dummy outbox event recorder so the client code can still work even if the outbox is not enabled
-    // note that is is a conditional bean, it will only be created if the real outbox event recorder is not present
+    // note that is a conditional bean, it will only be created if the real outbox event recorder is not present
     @Bean
     @ConditionalOnMissingBean(name = "outboxEventRecorder")
     public OutboxEventRecorder dummyOutboxEventRecorder(){

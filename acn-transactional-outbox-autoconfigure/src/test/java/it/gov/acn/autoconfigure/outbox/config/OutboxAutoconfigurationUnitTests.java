@@ -14,7 +14,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 public class OutboxAutoconfigurationUnitTests {
 
-    private ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(BulkheadAutoConfiguration.class, OutboxAutoconfiguration.class));
 
 

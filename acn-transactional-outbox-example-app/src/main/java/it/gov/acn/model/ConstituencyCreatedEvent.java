@@ -1,18 +1,16 @@
 package it.gov.acn.model;
 
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-import java.util.UUID;
-
 @Getter
 @NoArgsConstructor
 public class ConstituencyCreatedEvent{
-  public static String EVENT_TYPE_LITERAL = "ConstituencyCreatedEvent";
+  public static final String EVENT_TYPE_LITERAL = "ConstituencyCreatedEvent";
 
-  private String eventType = EVENT_TYPE_LITERAL;
+  private final String eventType = EVENT_TYPE_LITERAL;
 
   private String eventId;
   private Instant timestamp;

@@ -2,14 +2,11 @@ package it.gov.acn;
 
 import it.gov.acn.etc.TestableOutboxProcessor;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
-import it.gov.acn.outbox.core.processor.OutboxProcessor;
 import it.gov.acn.outbox.scheduler.OutboxScheduler;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.lang3.reflect.MethodUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -49,8 +46,7 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConte
   }
 
   @Test
-  public void given_multiple_threads_when_process_then_only_one_process_at_a_time()
-      throws Exception {
+  public void given_multiple_threads_when_process_then_only_one_process_at_a_time(){
     assert outboxProcessor != null;
     AtomicInteger criticalSectionCounter = new AtomicInteger(0);
 
@@ -72,7 +68,4 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConte
     // only one thread should have entered the critical section
     Assertions.assertEquals(1, criticalSectionCounter.get());
   }
-
-
-
 }

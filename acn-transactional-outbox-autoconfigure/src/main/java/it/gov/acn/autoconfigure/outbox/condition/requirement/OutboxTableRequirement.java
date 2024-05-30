@@ -29,7 +29,7 @@ public class OutboxTableRequirement implements ContextRequirement{
   @Override
   public boolean isSatisfied() {
     try {
-      DataSource dataSource = (DataSource) beanFactory.getBean(DataSource.class);
+      DataSource dataSource = beanFactory.getBean(DataSource.class);
       return Utils.doesTableExist(dataSource, properties.getTableName());
     } catch (Exception e) {
       logger.error(e.getMessage());
