@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
         "acn.outbox.scheduler.enabled=true",
         "acn.outbox.scheduler.fixed-delay=3000",
 })
-public class ConstituencyServiceOutboxTransactionalIntegrationTests extends PostgresTestContext{
+public class ConstituencyServiceOutboxTransactionalIntegrationTests extends PostgresTestContainerConfiguration{
 
     @Autowired
     private ConstituencyService constituencyService;

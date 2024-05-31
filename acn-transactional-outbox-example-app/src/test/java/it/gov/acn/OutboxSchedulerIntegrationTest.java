@@ -48,7 +48,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
     "logging.level.it.gov.acn=TRACE"
 })
 @ExtendWith(MockitoExtension.class)
-public class OutboxSchedulerIntegrationTest extends PostgresTestContext{
+public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfiguration{
   private final long fixedDelay = 3000;
   private final int backoffBase = 1;
 

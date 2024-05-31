@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         "acn.outbox.scheduler.fixed-delay=3000",
 })
 @Sql(scripts = "/db/test-data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-public class OutboxStarterDataProviderIntegrationTest extends PostgresTestContext {
+public class OutboxStarterDataProviderIntegrationTest extends  PostgresTestContainerConfiguration{
 
     @Autowired
     private DataProvider dataProvider;
