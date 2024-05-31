@@ -7,15 +7,18 @@ import it.gov.acn.autoconfigure.outbox.providers.locking.SchedlockLockProvider;
 import it.gov.acn.autoconfigure.outbox.providers.scheduling.TaskSchedulerSchedulingProvider;
 import it.gov.acn.autoconfigure.outbox.providers.serialization.JacksonSerializationProvider;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
+import it.gov.acn.outbox.core.processor.OutboxProcessor;
+import it.gov.acn.outbox.core.processor.OutboxProcessorFactory;
 import it.gov.acn.outbox.core.recorder.DatabaseOutboxEventRecorder;
 import it.gov.acn.outbox.core.recorder.DummyOutboxEventRecorder;
 import it.gov.acn.outbox.core.recorder.OutboxEventRecorder;
+import it.gov.acn.outbox.core.scheduler.OutboxScheduler;
+import it.gov.acn.outbox.core.scheduler.OutboxSchedulerFactory;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.SchedulingProvider;
 import it.gov.acn.outbox.model.SerializationProvider;
-import it.gov.acn.outbox.scheduler.OutboxScheduler;
 import javax.sql.DataSource;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
@@ -35,12 +38,12 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @AutoConfiguration(after= {
-        BulkheadAutoConfiguration.class,
-        JpaRepositoriesAutoConfiguration.class,
-        DataSourceAutoConfiguration.class,
-        LiquibaseAutoConfiguration.class,
-        FlywayAutoConfiguration.class,
-        BatchAutoConfiguration.class
+    BulkheadAutoConfiguration.class,
+    JpaRepositoriesAutoConfiguration.class,
+    DataSourceAutoConfiguration.class,
+    LiquibaseAutoConfiguration.class,
+    FlywayAutoConfiguration.class,
+    BatchAutoConfiguration.class
 })
 public class OutboxAutoconfiguration {
     private final Logger logger = LoggerFactory.getLogger(OutboxAutoconfiguration.class);
@@ -50,16 +53,16 @@ public class OutboxAutoconfiguration {
     // and the outbox starter is enabled, and the context is valid
     @Bean
     @Conditional({
-            StarterEnabled.class,
-            ContextValidCondition.class
+        StarterEnabled.class,
+        ContextValidCondition.class
     })
     @ConditionalOnMissingBean(TaskScheduler.class)
     public TaskScheduler threadPoolTaskScheduler(){
         ThreadPoolTaskScheduler threadPoolTaskScheduler
-                = new ThreadPoolTaskScheduler();
+            = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setPoolSize(5);
         threadPoolTaskScheduler.setThreadNamePrefix(
-                "ThreadPoolTaskScheduler");
+            "ThreadPoolTaskScheduler");
         return threadPoolTaskScheduler;
     }
 
@@ -69,8 +72,8 @@ public class OutboxAutoconfiguration {
     @Bean
     @ConditionalOnBean(DataSource.class)
     @Conditional({
-            StarterEnabled.class,
-            ContextValidCondition.class
+        StarterEnabled.class,
+        ContextValidCondition.class
     })
     public DataProvider dataProvider(DataSource dataSource){
         // TODO: Factory method to create a DataProvider, for now there is only one implementation
@@ -81,8 +84,8 @@ public class OutboxAutoconfiguration {
     @Bean
     @ConditionalOnBean(TaskScheduler.class)
     @Conditional({
-            StarterEnabled.class,
-            ContextValidCondition.class
+        StarterEnabled.class,
+        ContextValidCondition.class
     })
     public SchedulingProvider schedulingProvider(TaskScheduler taskScheduler){
         // TODO: Factory method to create a SchedulingProvider, for now there is only one implementation
@@ -92,8 +95,8 @@ public class OutboxAutoconfiguration {
     // a serialization provider is needed by the core to serialize the events
     @Bean
     @Conditional({
-            StarterEnabled.class,
-            ContextValidCondition.class
+        StarterEnabled.class,
+        ContextValidCondition.class
     })
     public SerializationProvider serializationProvider(){
         // TODO: Factory method to create a SerializationProvider, for now there is only one implementation
@@ -131,12 +134,12 @@ public class OutboxAutoconfiguration {
     // the outbox recorder serves as a bridge for the client code to register events
     @Bean
     @ConditionalOnBean({
-            DataProvider.class,
-            SerializationProvider.class
+        DataProvider.class,
+        SerializationProvider.class
     })
     public OutboxEventRecorder outboxEventRecorder(
-            DataProvider dataProvider,
-            SerializationProvider serializationProvider
+        DataProvider dataProvider,
+        SerializationProvider serializationProvider
     ){
         return new DatabaseOutboxEventRecorder(dataProvider, serializationProvider);
     }
@@ -144,9 +147,63 @@ public class OutboxAutoconfiguration {
     // We set up a dummy outbox event recorder so the client code can still work even if the outbox is not enabled
     // note that is a conditional bean, it will only be created if the real outbox event recorder is not present
     @Bean
+    @Conditional({
+        ContextValidCondition.class
+    })
     @ConditionalOnMissingBean(name = "outboxEventRecorder")
     public OutboxEventRecorder dummyOutboxEventRecorder(){
         return new DummyOutboxEventRecorder();
+    }
+
+
+    // That's the bean that represents the outbox core configuration, i.e. the configuration
+    // needed by the core to implement the outbox behavior
+    @Bean
+    @Conditional({
+        StarterEnabled.class,
+        ContextValidCondition.class
+    })
+    @ConditionalOnBean({
+        DataProvider.class,
+        SchedulingProvider.class,
+        SerializationProvider.class,
+        LockingProvider.class,
+    })
+    // Why? to offer the possibility to override the configuration in a programmatic way
+    @ConditionalOnMissingBean(OutboxConfiguration.class)
+    public OutboxConfiguration  outboxConfiguration(
+        DataProvider dataProvider,
+        LockingProvider lockingProvider,
+        OutboxProperties transactionalOutboxProperties,
+        SchedulingProvider schedulingProvider,
+        SerializationProvider serializationProvider,
+        OutboxItemHandlerProvider outboxItemHandlerProvider
+    ){
+        OutboxConfiguration outboxConfiguration = OutboxConfiguration.builder()
+            .fixedDelay(transactionalOutboxProperties.getFixedDelay())
+            .maxAttempts(transactionalOutboxProperties.getMaxAttempts())
+            .backoffBase(transactionalOutboxProperties.getBackoffBase())
+            .dataProvider(dataProvider)
+            .schedulingProvider(schedulingProvider)
+            .serializationProvider(serializationProvider)
+            .lockingProvider(lockingProvider)
+            .outboxItemHandlerProvider(outboxItemHandlerProvider)
+            .build();
+        logger.debug("Transactional Outbox Starter configuration details: {}",outboxConfiguration);
+        return outboxConfiguration;
+    }
+
+    // that's the bean that implements the processor that will handle the outbox items
+    @Bean
+    @Conditional({
+        StarterEnabled.class,
+        ContextValidCondition.class
+    })
+    @ConditionalOnBean({
+        OutboxConfiguration.class
+    })
+    public OutboxProcessor transactionalOutboxProcessor(OutboxConfiguration outboxConfiguration){
+        return OutboxProcessorFactory.createOutboxProcessor(outboxConfiguration);
     }
 
 
@@ -154,35 +211,19 @@ public class OutboxAutoconfiguration {
     // That's bean that activates the outbox scheduler(see core module)
     @Bean
     @Conditional({
-            StarterEnabled.class,
-            ContextValidCondition.class
+        StarterEnabled.class,
+        ContextValidCondition.class
     })
     @ConditionalOnBean({
-            DataProvider.class,
-            SchedulingProvider.class,
-            SerializationProvider.class,
-            LockingProvider.class,
+        OutboxConfiguration.class,
+        OutboxProcessor.class
     })
     public OutboxScheduler transactionalOutboxScheduler(
-            OutboxProperties transactionalOutboxProperties,
-            DataProvider dataProvider,
-            SchedulingProvider schedulingProvider,
-            SerializationProvider serializationProvider,
-            LockingProvider lockingProvider,
-            OutboxItemHandlerProvider outboxItemHandlerProvider
+        OutboxConfiguration outboxConfiguration,
+        OutboxProcessor outboxProcessor
     ){
-        logger.debug("Transactional Outbox Starter configuration details: {}",transactionalOutboxProperties);
-        OutboxConfiguration outboxConfiguration = OutboxConfiguration.builder()
-                .fixedDelay(transactionalOutboxProperties.getFixedDelay())
-                .maxAttempts(transactionalOutboxProperties.getMaxAttempts())
-                .backoffBase(transactionalOutboxProperties.getBackoffBase())
-                .dataProvider(dataProvider)
-                .schedulingProvider(schedulingProvider)
-                .serializationProvider(serializationProvider)
-                .lockingProvider(lockingProvider)
-                .outboxItemHandlerProvider(outboxItemHandlerProvider)
-                .build();
-        return new OutboxScheduler(outboxConfiguration);
+
+        return OutboxSchedulerFactory.createOutboxScheduler(outboxConfiguration, outboxProcessor);
     }
 
 }

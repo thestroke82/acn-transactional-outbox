@@ -3,7 +3,8 @@ package it.gov.acn;
 import it.gov.acn.etc.TestableOutboxProcessor;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.model.LockingProvider;
-import it.gov.acn.outbox.scheduler.OutboxScheduler;
+import it.gov.acn.outbox.core.scheduler.OutboxScheduler;
+import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -11,30 +12,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.javacrumbs.shedlock.core.LockConfiguration;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest(properties = {
@@ -45,17 +36,15 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConta
 
   @SpyBean
   private LockingProvider lockingProvider;
+
   private TestableOutboxProcessor outboxProcessor;
-  private OutboxScheduler outboxScheduler;
 
   @Autowired
-  public void setOutboxScheduler(OutboxScheduler outboxScheduler) {
-    this.outboxScheduler = outboxScheduler;
-    OutboxConfiguration outboxConfiguration = (OutboxConfiguration)ReflectionTestUtils.getField(outboxScheduler, "outboxConfiguration");
-    outboxProcessor = new TestableOutboxProcessor(outboxConfiguration);
-    outboxProcessor = Mockito.spy(outboxProcessor);
-    assert outboxProcessor != null;
-    ReflectionTestUtils.setField(outboxScheduler, "outboxProcessor", outboxProcessor);
+  private OutboxConfiguration outboxConfiguration;
+
+  @PostConstruct
+  public void init(){
+    outboxProcessor = Mockito.spy(new TestableOutboxProcessor(outboxConfiguration));
   }
 
 

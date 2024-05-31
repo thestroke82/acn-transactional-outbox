@@ -1,6 +1,5 @@
 package it.gov.acn.outbox.core.processor;
 
-import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.model.DataProvider;
 import it.gov.acn.outbox.model.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItem;
@@ -14,20 +13,26 @@ import org.slf4j.LoggerFactory;
 public class OutboxProcessor {
     private final Logger logger = LoggerFactory.getLogger(OutboxProcessor.class);
 
-    private final OutboxConfiguration outboxConfiguration;
+
+    private final int maxAttempts;
     private final DataProvider dataProvider;
     private final OutboxItemHandlerProvider outboxItemHandlerProvider;
     private final LockingProvider lockingProvider;
     private final OutboxItemSelectionStrategy outboxItemSelectionStrategy;
 
-    public OutboxProcessor(OutboxConfiguration outboxConfiguration) {
-        this.outboxConfiguration = outboxConfiguration;
-        this.dataProvider = this.outboxConfiguration.getDataProvider();
-        this.outboxItemHandlerProvider = this.outboxConfiguration.getOutboxItemHandlerProvider();
-        this.lockingProvider = this.outboxConfiguration.getLockingProvider();
+    protected OutboxProcessor(
+        int backoffBase,
+        int maxAttempts,
+        DataProvider dataProvider,
+        OutboxItemHandlerProvider outboxItemHandlerProvider,
+        LockingProvider lockingProvider
+    ) {
+        this.maxAttempts = maxAttempts;
+        this.dataProvider = dataProvider;
+        this.outboxItemHandlerProvider = outboxItemHandlerProvider;
+        this.lockingProvider = lockingProvider;
         //TODO: Use a factory to create the OutboxItemSelectionStrategy, for now only one strategy is available
-        this.outboxItemSelectionStrategy =
-                new ExponentialBackoffStrategy(this.outboxConfiguration.getBackoffBase());
+        this.outboxItemSelectionStrategy = new ExponentialBackoffStrategy(backoffBase);
     }
 
     public void process(){
@@ -40,18 +45,18 @@ public class OutboxProcessor {
         }catch (Exception e) {
             logger.error("Error processing outbox items", e);
         }finally {
-          this.lockingProvider.release(lock);
+            this.lockingProvider.release(lock);
         }
     }
 
-    // this represents the "critical section" and it's protected for testing purposes
+    // this represents the "critical section" and its modifier is protected for testing purposes
     protected void doProcess(){
         // oldest events first
         Sort sort = Sort.of(Sort.Property.CREATION_DATE, Sort.Direction.ASC);
 
         // load all outstanding items on a simple basis: when they have no completion date and are below the max attempts
         List<OutboxItem> outstandingItems =
-            this.dataProvider.find(false, this.outboxConfiguration.getMaxAttempts()+1, sort);
+            this.dataProvider.find(false, maxAttempts+1, sort);
 
         // select the outbox items to process in a more detailed way (in memory)
         // currently, the exponential backoff strategy is the only one implemented

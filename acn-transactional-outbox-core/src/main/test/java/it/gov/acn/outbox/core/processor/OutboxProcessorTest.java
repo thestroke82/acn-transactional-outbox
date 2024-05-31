@@ -49,7 +49,7 @@ public class OutboxProcessorTest {
         when(lockingProvider.lock()).thenReturn(Optional.of("lock"));
         doNothing().when(lockingProvider).release(any());
 
-        outboxProcessor = new OutboxProcessor(outboxConfiguration);
+        outboxProcessor = OutboxProcessorFactory.createOutboxProcessor(outboxConfiguration);
     }
 
     @Test

@@ -1,26 +1,31 @@
-package it.gov.acn.outbox.scheduler;
+package it.gov.acn.outbox.core.scheduler;
 
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.core.processor.OutboxProcessor;
+import it.gov.acn.outbox.model.SchedulingProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OutboxScheduler {
     private final Logger logger = LoggerFactory.getLogger(OutboxScheduler.class);
 
-    private final OutboxConfiguration outboxConfiguration;
+    private final SchedulingProvider schedulingProvider;
+    private final long fixedDelay;
     private final OutboxProcessor outboxProcessor;
 
-    public OutboxScheduler(OutboxConfiguration outboxConfiguration) {
-        this.outboxConfiguration = outboxConfiguration;
-        this.outboxProcessor = new OutboxProcessor(outboxConfiguration);
+    OutboxScheduler(
+        SchedulingProvider schedulingProvider,
+        long fixedDelay,
+        OutboxProcessor outboxProcessor
+    ){
+        this.schedulingProvider = schedulingProvider;
+        this.fixedDelay = fixedDelay;
+        this.outboxProcessor = outboxProcessor;
         this.schedule();
     }
 
     public void schedule(){
-        logger.debug("Scheduling outbox processor with conf: "+outboxConfiguration.toString());
-        this.outboxConfiguration.getSchedulingProvider()
-                .schedule(this::safeProcess, outboxConfiguration.getFixedDelay());
+        this.schedulingProvider.schedule(this::safeProcess, fixedDelay);
     }
 
     private void safeProcess(){
