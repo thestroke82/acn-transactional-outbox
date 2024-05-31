@@ -39,8 +39,7 @@ public class SchedlockLockProvider implements LockingProvider {
 
   @Override
   public void release(Object lock) {
-    if(lock != null){
-      SimpleLock simpleLock = (SimpleLock) lock;
+    if(lock instanceof SimpleLock simpleLock){
       activeLocks.remove(simpleLock);
       logger.trace("Lock released by thread {}", Thread.currentThread().getName());
       simpleLock.unlock();
