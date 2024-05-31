@@ -30,7 +30,7 @@ public class OutboxProcessor {
                 new ExponentialBackoffStrategy(this.outboxConfiguration.getBackoffBase());
     }
 
-    public synchronized void process(){
+    public void process(){
         Object lock = this.lockingProvider.lock().orElse(null);
         if(lock == null){
             return;
@@ -40,7 +40,7 @@ public class OutboxProcessor {
         }catch (Exception e) {
             logger.error("Error processing outbox items", e);
         }finally {
-            this.lockingProvider.release(lock);
+          this.lockingProvider.release(lock);
         }
     }
 
