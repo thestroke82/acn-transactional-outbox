@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SchedlockLockProvider implements LockingProvider {
-  private final Logger logger = LoggerFactory.getLogger(SchedlockLockProvider.class);
   private final List<SimpleLock> activeLocks =
       Collections.synchronizedList(new ArrayList<>());
   private final LockProvider lockProvider;
@@ -28,12 +27,7 @@ public class SchedlockLockProvider implements LockingProvider {
     LockConfiguration lockConfiguration = new LockConfiguration(Instant.now(), "acn_transactional_outbox",
         Duration.ofSeconds(120), Duration.ofMillis(200));
     Optional<SimpleLock> lock = this.lockProvider.lock(lockConfiguration);
-    if(lock.isPresent()){
-      activeLocks.add(lock.get());
-      logger.trace("Lock acquired by thread {}", Thread.currentThread().getName());
-    }else {
-      logger.trace("Lock not acquired by thread {}", Thread.currentThread().getName());
-    }
+    lock.ifPresent(activeLocks::add);
     return lock.map(l -> l); // casts to object the Optional argument
   }
 
@@ -41,7 +35,6 @@ public class SchedlockLockProvider implements LockingProvider {
   public void release(Object lock) {
     if(lock instanceof SimpleLock simpleLock){
       activeLocks.remove(simpleLock);
-      logger.trace("Lock released by thread {}", Thread.currentThread().getName());
       simpleLock.unlock();
     }
   }
