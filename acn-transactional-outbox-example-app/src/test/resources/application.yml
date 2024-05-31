@@ -1,3 +1,9 @@
+datasource:
+  driver: org.postgresql.Driver
+  jdbcUrl: ${POSTGRES_URL}
+  username: ${POSTGRES_USERNAME}
+  password: ${POSTGRES_PASSWORD}
+
 spring:
   profiles:
     active: test
@@ -5,6 +11,11 @@ spring:
     keep-alive: true
   application:
     name: dontcare
+  datasource:
+    driver-class-name: ${datasource.driver}
+    username: ${datasource.username}
+    url: ${datasource.jdbcUrl}
+    password: ${datasource.password}
   jpa:
     hibernate:
       generate-ddl: true
