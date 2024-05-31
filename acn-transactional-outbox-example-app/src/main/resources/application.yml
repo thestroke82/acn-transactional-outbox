@@ -15,6 +15,15 @@ spring:
     url: ${datasource.jdbcUrl}
     password: ${datasource.password}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
 acn:
   outbox:
     scheduler:
