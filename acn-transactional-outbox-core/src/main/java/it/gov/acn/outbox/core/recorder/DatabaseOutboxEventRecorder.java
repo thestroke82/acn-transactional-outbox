@@ -1,8 +1,8 @@
 package it.gov.acn.outbox.core.recorder;
 
-import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
-import it.gov.acn.outbox.model.SerializationProvider;
+import it.gov.acn.outbox.provider.SerializationProvider;
 
 import java.time.Instant;
 import java.util.UUID;

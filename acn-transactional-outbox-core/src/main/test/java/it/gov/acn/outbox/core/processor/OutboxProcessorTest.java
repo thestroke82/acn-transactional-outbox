@@ -10,10 +10,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
-import it.gov.acn.outbox.model.DataProvider;
-import it.gov.acn.outbox.model.LockingProvider;
+import it.gov.acn.outbox.provider.DataProvider;
+import it.gov.acn.outbox.provider.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItem;
-import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
+import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

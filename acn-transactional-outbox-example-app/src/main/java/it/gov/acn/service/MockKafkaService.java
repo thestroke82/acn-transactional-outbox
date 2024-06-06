@@ -6,7 +6,7 @@ import it.gov.acn.integration.KafkaTemplate;
 import it.gov.acn.model.ConstituencyCreatedEvent;
 import it.gov.acn.model.MockKafkaBrokerMessage;
 import it.gov.acn.outbox.model.OutboxItem;
-import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
+import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

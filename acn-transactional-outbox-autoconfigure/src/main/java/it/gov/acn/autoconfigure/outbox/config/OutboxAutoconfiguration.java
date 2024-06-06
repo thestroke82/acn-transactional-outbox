@@ -6,6 +6,7 @@ import it.gov.acn.autoconfigure.outbox.providers.data.postgres.PostgresJdbcDataP
 import it.gov.acn.autoconfigure.outbox.providers.locking.SchedlockLockProvider;
 import it.gov.acn.autoconfigure.outbox.providers.scheduling.TaskSchedulerSchedulingProvider;
 import it.gov.acn.autoconfigure.outbox.providers.serialization.JacksonSerializationProvider;
+import it.gov.acn.autoconfigure.outbox.providers.transaction.PlatformTransactionManagerProvider;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.core.processor.OutboxProcessor;
 import it.gov.acn.outbox.core.processor.OutboxProcessorFactory;
@@ -14,11 +15,12 @@ import it.gov.acn.outbox.core.recorder.DummyOutboxEventRecorder;
 import it.gov.acn.outbox.core.recorder.OutboxEventRecorder;
 import it.gov.acn.outbox.core.scheduler.OutboxScheduler;
 import it.gov.acn.outbox.core.scheduler.OutboxSchedulerFactory;
-import it.gov.acn.outbox.model.DataProvider;
-import it.gov.acn.outbox.model.LockingProvider;
-import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
-import it.gov.acn.outbox.model.SchedulingProvider;
-import it.gov.acn.outbox.model.SerializationProvider;
+import it.gov.acn.outbox.provider.DataProvider;
+import it.gov.acn.outbox.provider.LockingProvider;
+import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
+import it.gov.acn.outbox.provider.SchedulingProvider;
+import it.gov.acn.outbox.provider.SerializationProvider;
+import it.gov.acn.outbox.provider.TransactionManagerProvider;
 import javax.sql.DataSource;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
@@ -36,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @AutoConfiguration(after= {
     BulkheadAutoConfiguration.class,
@@ -78,6 +81,19 @@ public class OutboxAutoconfiguration {
     public DataProvider dataProvider(DataSource dataSource){
         // TODO: Factory method to create a DataProvider, for now there is only one implementation
         return new PostgresJdbcDataProvider(dataSource);
+    }
+
+    // a transaction manager provider is needed by the core to handle transactions
+    @Bean
+    @ConditionalOnBean(PlatformTransactionManager.class)
+    @Conditional({
+        StarterEnabled.class,
+        ContextValidCondition.class
+    })
+    public PlatformTransactionManagerProvider transactionManagerProvider(
+        PlatformTransactionManager platformTransactionManager){
+        // TODO: Factory method to create a DataProvider, for now there is only one implementation
+        return new PlatformTransactionManagerProvider(platformTransactionManager);
     }
 
     // a scheduling provider is needed by the core to schedule the outbox processor
@@ -177,7 +193,8 @@ public class OutboxAutoconfiguration {
         OutboxProperties transactionalOutboxProperties,
         SchedulingProvider schedulingProvider,
         SerializationProvider serializationProvider,
-        OutboxItemHandlerProvider outboxItemHandlerProvider
+        OutboxItemHandlerProvider outboxItemHandlerProvider,
+        TransactionManagerProvider transactionManagerProvider
     ){
         OutboxConfiguration outboxConfiguration = OutboxConfiguration.builder()
             .fixedDelay(transactionalOutboxProperties.getFixedDelay())
@@ -188,6 +205,7 @@ public class OutboxAutoconfiguration {
             .serializationProvider(serializationProvider)
             .lockingProvider(lockingProvider)
             .outboxItemHandlerProvider(outboxItemHandlerProvider)
+            .transactionManagerProvider(transactionManagerProvider)
             .build();
         logger.debug("Transactional Outbox Starter configuration details: {}",outboxConfiguration);
         return outboxConfiguration;

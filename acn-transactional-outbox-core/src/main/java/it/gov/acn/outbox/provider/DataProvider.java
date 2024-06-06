@@ -1,5 +1,7 @@
-package it.gov.acn.outbox.model;
+package it.gov.acn.outbox.provider;
 
+import it.gov.acn.outbox.model.OutboxItem;
+import it.gov.acn.outbox.model.Sort;
 import java.util.List;
 import java.util.UUID;
 

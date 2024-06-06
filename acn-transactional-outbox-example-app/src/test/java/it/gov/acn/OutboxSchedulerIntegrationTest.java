@@ -10,7 +10,7 @@ import it.gov.acn.integration.KafkaTemplate;
 import it.gov.acn.model.Constituency;
 import it.gov.acn.model.ConstituencyCreatedEvent;
 import it.gov.acn.model.MockKafkaBrokerMessage;
-import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.core.scheduler.OutboxScheduler;
 import it.gov.acn.repository.ConstituencyRepository;

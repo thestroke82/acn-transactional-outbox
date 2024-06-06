@@ -1,7 +1,7 @@
 package it.gov.acn.autoconfigure.outbox.condition.requirement;
 
 import it.gov.acn.autoconfigure.outbox.etc.Utils;
-import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
+import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 import java.util.Optional;

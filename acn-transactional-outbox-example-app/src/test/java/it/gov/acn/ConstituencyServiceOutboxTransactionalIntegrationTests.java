@@ -4,7 +4,7 @@ import it.gov.acn.autoconfigure.outbox.config.DefaultConfiguration;
 import it.gov.acn.model.Constituency;
 import it.gov.acn.model.ConstituencyCreatedEvent;
 import it.gov.acn.outbox.core.recorder.OutboxEventRecorder;
-import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.repository.ConstituencyRepository;
 import it.gov.acn.service.ConstituencyService;

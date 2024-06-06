@@ -1,6 +1,6 @@
 package it.gov.acn.autoconfigure.outbox.providers.locking;
 
-import it.gov.acn.outbox.model.LockingProvider;
+import it.gov.acn.outbox.provider.LockingProvider;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,8 +10,6 @@ import java.util.Optional;
 import net.javacrumbs.shedlock.core.LockConfiguration;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SchedlockLockProvider implements LockingProvider {
   private final List<SimpleLock> activeLocks =

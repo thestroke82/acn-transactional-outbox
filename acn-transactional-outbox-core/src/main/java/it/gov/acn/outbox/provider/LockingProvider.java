@@ -1,4 +1,4 @@
-package it.gov.acn.outbox.model;
+package it.gov.acn.outbox.provider;
 
 import java.util.Optional;
 

@@ -2,8 +2,7 @@ package it.gov.acn;
 
 import it.gov.acn.etc.TestableOutboxProcessor;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
-import it.gov.acn.outbox.model.LockingProvider;
-import it.gov.acn.outbox.core.scheduler.OutboxScheduler;
+import it.gov.acn.outbox.provider.LockingProvider;
 import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
@@ -21,12 +20,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest(properties = {
     "acn.outbox.scheduler.enabled=true"

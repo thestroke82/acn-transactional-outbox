@@ -1,7 +1,7 @@
 package it.gov.acn.autoconfigure.outbox.providers.data.postgres;
 
 import it.gov.acn.autoconfigure.outbox.providers.data.OutboxSqlColumns;
-import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.model.Sort;
 

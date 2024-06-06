@@ -2,7 +2,7 @@ package it.gov.acn.autoconfigure.outbox.providers.serialization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import it.gov.acn.outbox.model.SerializationProvider;
+import it.gov.acn.outbox.provider.SerializationProvider;
 
 public class JacksonSerializationProvider implements SerializationProvider {
 

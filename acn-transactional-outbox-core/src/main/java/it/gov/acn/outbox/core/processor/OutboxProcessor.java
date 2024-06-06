@@ -1,9 +1,9 @@
 package it.gov.acn.outbox.core.processor;
 
-import it.gov.acn.outbox.model.DataProvider;
-import it.gov.acn.outbox.model.LockingProvider;
+import it.gov.acn.outbox.provider.DataProvider;
+import it.gov.acn.outbox.provider.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItem;
-import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
+import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.Sort;
 import java.time.Instant;
 import java.util.List;

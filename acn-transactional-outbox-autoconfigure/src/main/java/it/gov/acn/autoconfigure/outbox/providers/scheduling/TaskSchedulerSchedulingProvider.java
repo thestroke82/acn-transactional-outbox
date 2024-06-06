@@ -1,6 +1,6 @@
 package it.gov.acn.autoconfigure.outbox.providers.scheduling;
 
-import it.gov.acn.outbox.model.SchedulingProvider;
+import it.gov.acn.outbox.provider.SchedulingProvider;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;

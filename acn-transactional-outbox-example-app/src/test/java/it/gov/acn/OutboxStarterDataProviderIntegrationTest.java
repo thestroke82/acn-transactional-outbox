@@ -1,7 +1,7 @@
 package it.gov.acn;
 
 import it.gov.acn.autoconfigure.outbox.providers.data.postgres.PostgresJdbcDataProvider;
-import it.gov.acn.outbox.model.DataProvider;
+import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.model.Sort;
 import org.junit.jupiter.api.Test;

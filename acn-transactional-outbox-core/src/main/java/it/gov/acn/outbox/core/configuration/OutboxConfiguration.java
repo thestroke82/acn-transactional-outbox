@@ -1,10 +1,11 @@
 package it.gov.acn.outbox.core.configuration;
 
-import it.gov.acn.outbox.model.DataProvider;
-import it.gov.acn.outbox.model.LockingProvider;
-import it.gov.acn.outbox.model.OutboxItemHandlerProvider;
-import it.gov.acn.outbox.model.SchedulingProvider;
-import it.gov.acn.outbox.model.SerializationProvider;
+import it.gov.acn.outbox.provider.DataProvider;
+import it.gov.acn.outbox.provider.LockingProvider;
+import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
+import it.gov.acn.outbox.provider.SchedulingProvider;
+import it.gov.acn.outbox.provider.SerializationProvider;
+import it.gov.acn.outbox.provider.TransactionManagerProvider;
 
 public class OutboxConfiguration {
 
@@ -56,6 +57,11 @@ public class OutboxConfiguration {
      */
     private OutboxItemHandlerProvider outboxItemHandlerProvider;
 
+    /**
+     * The transaction manager provider to use for handling transactions.
+     */
+    private TransactionManagerProvider transactionManagerProvider;
+
 
     private OutboxConfiguration() {
     }
@@ -73,6 +79,8 @@ public class OutboxConfiguration {
         private SerializationProvider serializationProvider;
         private LockingProvider lockingProvider;
         private OutboxItemHandlerProvider outboxItemHandlerProvider;
+
+        private TransactionManagerProvider transactionManagerProvider;
 
         public Builder fixedDelay(long fixedDelay) {
             this.fixedDelay = fixedDelay;
@@ -114,6 +122,11 @@ public class OutboxConfiguration {
             return this;
         }
 
+        public Builder transactionManagerProvider(TransactionManagerProvider transactionManagerProvider) {
+            this.transactionManagerProvider = transactionManagerProvider;
+            return this;
+        }
+
        public OutboxConfiguration build() {
             OutboxConfiguration config = new OutboxConfiguration();
             config.fixedDelay = this.fixedDelay;
@@ -124,6 +137,7 @@ public class OutboxConfiguration {
             config.serializationProvider = this.serializationProvider;
             config.lockingProvider = this.lockingProvider;
             config.outboxItemHandlerProvider = this.outboxItemHandlerProvider;
+            config.transactionManagerProvider = this.transactionManagerProvider;
             return config;
         }
     }
@@ -159,6 +173,10 @@ public class OutboxConfiguration {
         return outboxItemHandlerProvider;
     }
 
+    public TransactionManagerProvider getTransactionManagerProvider() {
+        return transactionManagerProvider;
+    }
+
     @Override
     public String toString() {
         return "OutboxConfiguration{" +
@@ -170,6 +188,7 @@ public class OutboxConfiguration {
                 ", serializationProvider=" + serializationProvider.getClass().getSimpleName() +
                 ", outboxItemHandlerProvider=" + outboxItemHandlerProvider.getClass().getSimpleName() +
                 ", lockingProvider=" + lockingProvider.getClass().getSimpleName() +
+                ", transactionManagerProvider=" + transactionManagerProvider.getClass().getSimpleName() +
                 '}';
     }
 }
