@@ -151,13 +151,15 @@ public class OutboxAutoconfiguration {
     @Bean
     @ConditionalOnBean({
         DataProvider.class,
-        SerializationProvider.class
+        SerializationProvider.class,
+        TransactionManagerProvider.class
     })
     public OutboxEventRecorder outboxEventRecorder(
         DataProvider dataProvider,
-        SerializationProvider serializationProvider
+        SerializationProvider serializationProvider,
+        TransactionManagerProvider transactionManagerProvider
     ){
-        return new DatabaseOutboxEventRecorder(dataProvider, serializationProvider);
+        return new DatabaseOutboxEventRecorder(dataProvider, serializationProvider, transactionManagerProvider);
     }
 
     // We set up a dummy outbox event recorder so the client code can still work even if the outbox is not enabled
