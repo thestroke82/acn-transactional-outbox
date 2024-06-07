@@ -6,7 +6,7 @@ import it.gov.acn.autoconfigure.outbox.providers.data.postgres.PostgresJdbcDataP
 import it.gov.acn.autoconfigure.outbox.providers.locking.SchedlockLockProvider;
 import it.gov.acn.autoconfigure.outbox.providers.scheduling.TaskSchedulerSchedulingProvider;
 import it.gov.acn.autoconfigure.outbox.providers.serialization.JacksonSerializationProvider;
-import it.gov.acn.autoconfigure.outbox.providers.transaction.PlatformTransactionManagerProvider;
+import it.gov.acn.autoconfigure.outbox.providers.transaction.TransactionTemplateProvider;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.core.processor.OutboxProcessor;
 import it.gov.acn.outbox.core.processor.OutboxProcessorFactory;
@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -85,15 +86,15 @@ public class OutboxAutoconfiguration {
 
     // a transaction manager provider is needed by the core to handle transactions
     @Bean
-    @ConditionalOnBean(PlatformTransactionManager.class)
+    @ConditionalOnSingleCandidate(PlatformTransactionManager.class)
     @Conditional({
         StarterEnabled.class,
         ContextValidCondition.class
     })
-    public PlatformTransactionManagerProvider transactionManagerProvider(
+    public TransactionTemplateProvider transactionManagerProvider(
         PlatformTransactionManager platformTransactionManager){
         // TODO: Factory method to create a DataProvider, for now there is only one implementation
-        return new PlatformTransactionManagerProvider(platformTransactionManager);
+        return new TransactionTemplateProvider(platformTransactionManager);
     }
 
     // a scheduling provider is needed by the core to schedule the outbox processor

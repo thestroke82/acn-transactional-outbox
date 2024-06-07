@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @SpringBootTest(properties = {
     "acn.outbox.scheduler.enabled=true",
@@ -27,6 +28,7 @@ public class TransactionManagerProviderTest extends PostgresTestContainerConfigu
   @Transactional
   @Test
   public void given_outer_transactional_context_when_exception_bottom_then_nothing_is_saved(){
+    Assertions.assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
     Assertions.assertThrows(RuntimeException.class, () -> {
       this.outboxEventRecorder.recordEvent("{\"test\":\"test\"}", "test");
       throw new RuntimeException("test");
