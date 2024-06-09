@@ -86,15 +86,14 @@ public class OutboxAutoconfiguration {
 
     // a transaction manager provider is needed by the core to handle transactions
     @Bean
-    @ConditionalOnSingleCandidate(PlatformTransactionManager.class)
+    @ConditionalOnBean(PlatformTransactionManager.class)
     @Conditional({
         StarterEnabled.class,
         ContextValidCondition.class
     })
-    public TransactionTemplateProvider transactionManagerProvider(
-        PlatformTransactionManager platformTransactionManager){
-        // TODO: Factory method to create a DataProvider, for now there is only one implementation
-        return new TransactionTemplateProvider(platformTransactionManager);
+    public TransactionTemplateProvider transactionManagerProvider(){
+        // TODO: Factory method to create a TransactionTemplateProvider, for now there is only one implementation
+        return new TransactionTemplateProvider();
     }
 
     // a scheduling provider is needed by the core to schedule the outbox processor
