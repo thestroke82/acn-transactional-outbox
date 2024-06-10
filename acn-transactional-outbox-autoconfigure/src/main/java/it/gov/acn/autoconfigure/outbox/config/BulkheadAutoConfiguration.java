@@ -25,12 +25,19 @@ public class BulkheadAutoConfiguration {
     Optional<Boolean> enabled = PropertiesHelper.getBooleanProperty(
         EnvPropertyKeys.ENABLED.getKeyWithPrefix(), environment);
     enabled.ifPresent(properties::setEnabled);
+
     Optional<Long> fixedDelay = PropertiesHelper.getLongProperty(
         EnvPropertyKeys.FIXED_DELAY.getKeyWithPrefix(), environment);
     fixedDelay.ifPresent(properties::setFixedDelay);
+
     Optional<String> tableName = PropertiesHelper.getStringProperty(
         EnvPropertyKeys.TABLE_NAME.getKeyWithPrefix(), environment);
     tableName.ifPresent(properties::setTableName);
+
+    Optional<Integer> maxAttempts = PropertiesHelper.getIntegerProperty(
+        EnvPropertyKeys.MAX_ATTEMPTS.getKeyWithPrefix(), environment);
+    maxAttempts.ifPresent(properties::setMaxAttempts);
+
     Optional<Integer> backoffBase = PropertiesHelper.getIntegerProperty(
         EnvPropertyKeys.BACKOFF_BASE.getKeyWithPrefix(), environment);
     backoffBase.ifPresent(properties::setBackoffBase);
