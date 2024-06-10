@@ -9,7 +9,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import it.gov.acn.outbox.core.TestUtils;
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
+import it.gov.acn.outbox.core.observability.OutboxMetricsCollector;
 import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.provider.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItem;
@@ -20,9 +22,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.platform.commons.util.ReflectionUtils;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 public class OutboxProcessorTest {
 
@@ -40,6 +46,9 @@ public class OutboxProcessorTest {
 
     private OutboxProcessor outboxProcessor;
 
+
+    private final OutboxMetricsCollector outboxMetricsCollector = Mockito.spy(OutboxMetricsCollector.getInstance());
+
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this);
@@ -50,6 +59,8 @@ public class OutboxProcessorTest {
         doNothing().when(lockingProvider).release(any());
 
         outboxProcessor = OutboxProcessorFactory.createOutboxProcessor(outboxConfiguration);
+
+        TestUtils.setPrivateField(outboxProcessor, "outboxMetricsCollector", outboxMetricsCollector);
     }
 
     @Test
@@ -79,7 +90,7 @@ public class OutboxProcessorTest {
     }
 
     @Test
-    public void given_outbox_item_success_when_process_then_update_item_with_success() {
+    public void given_outbox_item_success_when_process_then_update_item_with_success_and_increment_successes() {
         OutboxItem outboxItem = new OutboxItem();
         when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(List.of(outboxItem));
 
@@ -88,6 +99,7 @@ public class OutboxProcessorTest {
         outboxProcessor.process();
         verify(outboxItemHandlerProvider, times(1)).handle(outboxItem);
         verify(dataProvider, times(1)).update(captor.capture());
+        verify(outboxMetricsCollector, times(1)).incrementSuccesses();
 
         // Verify arguments
         List<OutboxItem> allValues = captor.getAllValues();
@@ -98,7 +110,7 @@ public class OutboxProcessorTest {
     }
 
     @Test
-    public void given_outbox_item_failure_when_process_then_update_item_with_error() {
+    public void given_outbox_item_failure_when_process_then_update_item_with_error_and_increment_failures() {
         OutboxItem outboxItem = new OutboxItem();
         when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(List.of(outboxItem));
 
@@ -109,6 +121,7 @@ public class OutboxProcessorTest {
         outboxProcessor.process();
         verify(outboxItemHandlerProvider, times(1)).handle(outboxItem);
         verify(dataProvider, times(1)).update(captor.capture());
+        verify(outboxMetricsCollector, times(1)).incrementFailures();
 
         // Verify arguments
         List<OutboxItem> allValues = captor.getAllValues();
