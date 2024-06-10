@@ -1,5 +1,6 @@
 package it.gov.acn.outbox.core.recorder;
 
+import it.gov.acn.outbox.core.observability.OutboxMetricsCollector;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.provider.SerializationProvider;
@@ -12,6 +13,8 @@ public class DatabaseOutboxEventRecorder implements OutboxEventRecorder {
     private final DataProvider dataProvider;
     private final SerializationProvider serializationProvider;
     private final TransactionManagerProvider transactionManagerProvider;
+
+    private final OutboxMetricsCollector outboxMetricsCollector = OutboxMetricsCollector.getInstance();
 
     public DatabaseOutboxEventRecorder(DataProvider dataProvider, SerializationProvider serializationProvider,
         TransactionManagerProvider transactionManagerProvider) {
@@ -31,6 +34,7 @@ public class DatabaseOutboxEventRecorder implements OutboxEventRecorder {
             entry.setAttempts(0);
             entry.setEvent(serializeToJson(event));
             dataProvider.save(entry);
+            this.outboxMetricsCollector.incrementQueued();
         });
     }
 

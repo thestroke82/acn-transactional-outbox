@@ -1,5 +1,6 @@
 package it.gov.acn.outbox.core.processor;
 
+import it.gov.acn.outbox.core.observability.OutboxMetricsCollector;
 import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.provider.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItem;
@@ -20,6 +21,8 @@ public class OutboxProcessor {
     private final LockingProvider lockingProvider;
     private final OutboxItemSelectionStrategy outboxItemSelectionStrategy;
 
+    private final OutboxMetricsCollector outboxMetricsCollector;
+
     protected OutboxProcessor(
         int backoffBase,
         int maxAttempts,
@@ -31,6 +34,7 @@ public class OutboxProcessor {
         this.dataProvider = dataProvider;
         this.outboxItemHandlerProvider = outboxItemHandlerProvider;
         this.lockingProvider = lockingProvider;
+        this.outboxMetricsCollector = OutboxMetricsCollector.getInstance();
         //TODO: Use a factory to create the OutboxItemSelectionStrategy, for now only one strategy is available
         this.outboxItemSelectionStrategy = new ExponentialBackoffStrategy(backoffBase);
     }
@@ -86,6 +90,7 @@ public class OutboxProcessor {
         outboxItem.setAttempts(outboxItem.getAttempts() + 1);
         outboxItem.setLastAttemptDate(now);
         this.dataProvider.update(outboxItem);
+        this.outboxMetricsCollector.incrementSuccesses();
     }
 
     private void setOutboxFailure(OutboxItem outboxItem, String errorMessage){
@@ -94,6 +99,10 @@ public class OutboxProcessor {
         outboxItem.setLastAttemptDate(now);
         outboxItem.setLastError(errorMessage);
         this.dataProvider.update(outboxItem);
+        this.outboxMetricsCollector.incrementFailures();
+        if(this.maxAttempts<=outboxItem.getAttempts()){
+            this.outboxMetricsCollector.incrementDlq();
+        }
     }
 
 }
