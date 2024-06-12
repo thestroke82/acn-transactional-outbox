@@ -58,6 +58,10 @@ public class OutboxMetricsCollector extends Observable{
     return dlq;
   }
 
+  public void reset() {
+    initialize();
+  }
+
   private static void initialize() {
     instance.queued = 0;
     instance.successes = 0;
