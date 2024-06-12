@@ -1,7 +1,9 @@
 package it.gov.acn.autoconfigure.outbox.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import it.gov.acn.autoconfigure.outbox.condition.ContextValidCondition;
 import it.gov.acn.autoconfigure.outbox.condition.StarterEnabled;
+import it.gov.acn.autoconfigure.outbox.observability.OutboxPrometheusExposer;
 import it.gov.acn.autoconfigure.outbox.providers.data.postgres.PostgresJdbcDataProvider;
 import it.gov.acn.autoconfigure.outbox.providers.locking.SchedlockLockProvider;
 import it.gov.acn.autoconfigure.outbox.providers.scheduling.TaskSchedulerSchedulingProvider;
@@ -173,6 +175,19 @@ public class OutboxAutoconfiguration {
         return new DummyOutboxEventRecorder();
     }
 
+
+    // That's the bean responsible for exposing the outbox metrics to prometheus
+    @Bean
+    @Conditional({
+        StarterEnabled.class,
+        ContextValidCondition.class
+    })
+    @ConditionalOnBean({
+        MeterRegistry.class
+    })
+    public OutboxPrometheusExposer outboxPrometheusExposer(MeterRegistry meterRegistry){
+        return new OutboxPrometheusExposer(meterRegistry);
+    }
 
     // That's the bean that represents the outbox core configuration, i.e. the configuration
     // needed by the core to implement the outbox behavior
