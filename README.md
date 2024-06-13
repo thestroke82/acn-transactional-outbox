@@ -145,7 +145,23 @@ With `backoff-base=5` and `max-attempts=4`:
 - **Second attempt**: 5 minutes after the first failed attempt.
 - **Third attempt**: 25 minutes after the second failed attempt.
 - **Fourth attempt**: 125 minutes after the third failed attempt.
-```
+
+
+
+## Observability
+To provide observability into the outbox processing, `acn-outbox-starter` integrates with Prometheus through custom metrics. This allows for monitoring key performance indicators and operational metrics related to the outbox.
+
+### Metrics Exposed
+The following custom metrics are exposed:
+
+- **`outbox.observation_start`**: A gauge indicating the start time of the observation. This metric helps in understanding when the metrics collection period started.
+- **`outbox.last_observation`**: A gauge showing the last time any metric was collected. This metric is useful for tracking the freshness of the metrics data.
+- **`outbox.queued`**: A counter tracking the number of events enqueued in the outbox during the current period.
+- **`outbox.successes`**: A counter tracking the number of events that have been successfully processed during the current period.
+- **`outbox.failures`**: A counter tracking the number of events that have failed to be processed during the current period.
+- **`outbox.dlq`**: A counter tracking the number of events moved to the Dead Letter Queue (DLQ) during the current period.
+
+
 
 ## Contributing
 
@@ -157,4 +173,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-For any inquiries or support, please contact [your-email@example.com].
+For any inquiries or support, please don't contact me.
