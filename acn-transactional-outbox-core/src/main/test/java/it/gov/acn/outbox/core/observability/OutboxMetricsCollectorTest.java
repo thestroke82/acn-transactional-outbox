@@ -24,6 +24,9 @@ public class OutboxMetricsCollectorTest {
         long initial = collector.getQueued();
         collector.incrementQueued();
         assertEquals(initial + 1, collector.getQueued());
+        assertEquals(0, collector.getSuccesses());
+        assertEquals(0, collector.getDlq());
+        assertEquals(0, collector.getFailures());
     }
 
     @Test
@@ -31,6 +34,9 @@ public class OutboxMetricsCollectorTest {
         long initial = collector.getSuccesses();
         collector.incrementSuccesses();
         assertEquals(initial + 1, collector.getSuccesses());
+        assertEquals(0, collector.getQueued());
+        assertEquals(0, collector.getDlq());
+        assertEquals(0, collector.getFailures());
     }
 
     @Test
@@ -38,6 +44,9 @@ public class OutboxMetricsCollectorTest {
         long initial = collector.getFailures();
         collector.incrementFailures();
         assertEquals(initial + 1, collector.getFailures());
+        assertEquals(0, collector.getQueued());
+        assertEquals(0, collector.getDlq());
+        assertEquals(0, collector.getSuccesses());
     }
 
     @Test
@@ -45,6 +54,9 @@ public class OutboxMetricsCollectorTest {
         long initial = collector.getDlq();
         collector.incrementDlq();
         assertEquals(initial + 1, collector.getDlq());
+        assertEquals(0, collector.getQueued());
+        assertEquals(0, collector.getFailures());
+        assertEquals(0, collector.getSuccesses());
     }
 
     @Test
