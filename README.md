@@ -12,6 +12,8 @@
     - [Using OutboxEventRecorder](#using-outboxeventrecorder)
 - [Features](#features)
 - [Configuration](#configuration)
+- [Observability](#observability)
+    - [Metrics Exposed](#metrics-exposed)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
