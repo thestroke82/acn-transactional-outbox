@@ -24,6 +24,17 @@ spring:
     baseline-on-migrate: true
     baseline-version: '0'
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'prometheus,health,info'
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 logging:
   level:
     it.gov.acn: DEBUG
+
