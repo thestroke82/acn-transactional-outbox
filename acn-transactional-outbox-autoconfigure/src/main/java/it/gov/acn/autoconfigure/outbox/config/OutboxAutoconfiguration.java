@@ -28,11 +28,11 @@ import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.actuate.autoconfigure.metrics.export.prometheus.PrometheusMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -49,7 +49,8 @@ import org.springframework.transaction.PlatformTransactionManager;
     DataSourceAutoConfiguration.class,
     LiquibaseAutoConfiguration.class,
     FlywayAutoConfiguration.class,
-    BatchAutoConfiguration.class
+    BatchAutoConfiguration.class,
+    PrometheusMetricsExportAutoConfiguration.class
 })
 public class OutboxAutoconfiguration {
     private final Logger logger = LoggerFactory.getLogger(OutboxAutoconfiguration.class);
