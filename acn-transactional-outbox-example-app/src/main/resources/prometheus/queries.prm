@@ -24,3 +24,14 @@ rate(outbox_failures_total[5m])
 # Rate of DLQ Messages
 rate(outbox_dlq_total[5m])
 
+# Percentage of Successful Messages Over 5m Time
+rate(outbox_successes_total[5m]) / (rate(outbox_successes_total[5m]) + rate(outbox_failures_total[5m])) * 100
+
+# Percentage of Failed Messages Over 5m Time
+rate(outbox_failures_total[5m]) / (rate(outbox_successes_total[5m]) + rate(outbox_failures_total[5m])) * 100
+
+# Success / Enqueued ratio
+rate(outbox_successes_total[5m]) / rate(outbox_queued_total[5m]) * 100
+
+# Success / Failure ratio
+rate(outbox_successes_total[5m]) / rate(outbox_failures_total[5m]) * 100

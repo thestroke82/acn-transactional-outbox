@@ -14,6 +14,7 @@
 - [Configuration](#configuration)
 - [Observability](#observability)
     - [Metrics Exposed](#metrics-exposed)
+    - [Sample Prometheus Queries](#sample-prometheus-queries)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
@@ -163,7 +164,46 @@ The following custom metrics are exposed:
 - **`outbox.failures`**: A counter tracking the number of events that have failed to be processed during the current period.
 - **`outbox.dlq`**: A counter tracking the number of events moved to the Dead Letter Queue (DLQ) during the current period.
 
+### Sample Prometheus Queries
+```
+# Absolute Number of Queued Messages
+outbox_queued_total
 
+# Absolute Number of Successful Messages
+outbox_successes_total
+
+# Absolute Number of Failed Messages
+outbox_failures_total
+
+# Absolute Number of DLQ Messages
+outbox_dlq_total
+
+# Rate Queries (rate of change over the past 5 minutes)
+
+# Rate of Queued Messages
+rate(outbox_queued_total[5m])
+
+# Rate of Successful Messages
+rate(outbox_successes_total[5m])
+
+# Rate of Failed Messages
+rate(outbox_failures_total[5m])
+
+# Rate of DLQ Messages
+rate(outbox_dlq_total[5m])
+
+# Percentage of Successful Messages Over 5m Time
+rate(outbox_successes_total[5m]) / (rate(outbox_successes_total[5m]) + rate(outbox_failures_total[5m])) * 100
+
+# Percentage of Failed Messages Over 5m Time
+rate(outbox_failures_total[5m]) / (rate(outbox_successes_total[5m]) + rate(outbox_failures_total[5m])) * 100
+
+# Success / Enqueued ratio
+rate(outbox_successes_total[5m]) / rate(outbox_queued_total[5m]) * 100
+
+# Success / Failure ratio
+rate(outbox_successes_total[5m]) / rate(outbox_failures_total[5m]) * 100
+```
 
 ## Contributing
 
