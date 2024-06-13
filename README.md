@@ -62,8 +62,6 @@ There are only two things the client app needs to do:
 Create a class that implements the `OutboxItemHandlerProvider` interface and provides the logic for handling the outbox items.
 
 ```java
-import org.springframework.stereotype.Component;
-
 @Component
 public class MyOutboxItemHandlerProvider implements OutboxItemHandlerProvider {
     @Override
@@ -80,11 +78,9 @@ __Important__: Ensure that any exceptions encountered during event handling are 
 Inject the `OutboxEventRecorder` bean and use it to record events into the outbox.
 
 ```java
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 @Service
 public class MyBusinessService {
+
   private final OutboxEventRecorder outboxEventRecorder;
 
   @Autowired
@@ -92,6 +88,7 @@ public class MyBusinessService {
     this.outboxEventRecorder = outboxEventRecorder;
   }
 
+  @Transactional
   public void createSomething() {
     MyType something;
     // Perform your business logic here
