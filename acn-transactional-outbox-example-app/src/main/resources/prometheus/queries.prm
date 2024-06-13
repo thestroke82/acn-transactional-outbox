@@ -1,0 +1,26 @@
+# Absolute Number of Queued Messages
+outbox_queued_total
+
+# Absolute Number of Successful Messages
+outbox_successes_total
+
+# Absolute Number of Failed Messages
+outbox_failures_total
+
+# Absolute Number of DLQ Messages
+outbox_dlq_total
+
+# Rate Queries (rate of change over the past 5 minutes)
+
+# Rate of Queued Messages
+rate(outbox_queued_total[5m])
+
+# Rate of Successful Messages
+rate(outbox_successes_total[5m])
+
+# Rate of Failed Messages
+rate(outbox_failures_total[5m])
+
+# Rate of DLQ Messages
+rate(outbox_dlq_total[5m])
+
