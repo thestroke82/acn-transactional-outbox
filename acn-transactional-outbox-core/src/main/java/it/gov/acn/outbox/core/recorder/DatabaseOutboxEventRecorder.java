@@ -24,7 +24,7 @@ public class DatabaseOutboxEventRecorder implements OutboxEventRecorder {
     }
 
     @Override
-    public void recordEvent(Object event, String type) {
+    public void recordEvent(Object event, String type, String groupId) {
         this.transactionManagerProvider.executeInTransaction(()->{
             OutboxItem entry = new OutboxItem();
             Instant now = Instant.now();
@@ -33,6 +33,7 @@ public class DatabaseOutboxEventRecorder implements OutboxEventRecorder {
             entry.setCreationDate(now);
             entry.setAttempts(0);
             entry.setEvent(serializeToJson(event));
+            entry.setGroupId(groupId);
             dataProvider.save(entry);
             this.outboxMetricsCollector.incrementQueued();
         });

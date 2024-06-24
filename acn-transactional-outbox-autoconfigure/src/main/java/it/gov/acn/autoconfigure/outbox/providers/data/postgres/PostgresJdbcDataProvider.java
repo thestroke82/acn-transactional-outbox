@@ -200,6 +200,7 @@ public class PostgresJdbcDataProvider implements DataProvider {
         item.setAttempts(resultSet.getInt(ATTEMPTS.getColumnName()));
         item.setEvent(resultSet.getString(EVENT.getColumnName()));
         item.setLastError(resultSet.getString(LAST_ERROR.getColumnName()));
+        item.setGroupId(resultSet.getString(GROUP_ID.getColumnName()));
         return item;
     }
 }

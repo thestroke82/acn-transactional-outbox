@@ -7,7 +7,12 @@ import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
 import it.gov.acn.outbox.model.Sort;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +25,8 @@ public class OutboxProcessor {
     private final OutboxItemHandlerProvider outboxItemHandlerProvider;
     private final LockingProvider lockingProvider;
     private final OutboxItemSelectionStrategy outboxItemSelectionStrategy;
-
     private final OutboxMetricsCollector outboxMetricsCollector;
+    private final OutboxItemGroupingStrategy outboxItemGroupingStrategy;
 
     protected OutboxProcessor(
         int backoffBase,
@@ -37,6 +42,10 @@ public class OutboxProcessor {
         this.outboxMetricsCollector = OutboxMetricsCollector.getInstance();
         //TODO: Use a factory to create the OutboxItemSelectionStrategy, for now only one strategy is available
         this.outboxItemSelectionStrategy = new ExponentialBackoffStrategy(backoffBase);
+        //TODO: Use a factory in the future
+        this.outboxItemGroupingStrategy = new NullableIdGroupingStrategy();
+
+
     }
 
     public void process(){
@@ -61,6 +70,9 @@ public class OutboxProcessor {
         // load all outstanding items on a simple basis: when they have no completion date and are below the max attempts
         List<OutboxItem> outstandingItems =
             this.dataProvider.find(false, maxAttempts+1, sort);
+
+        // group the items and pick one or more item from each group
+        outstandingItems = this.outboxItemGroupingStrategy.execute(outstandingItems);
 
         // select the outbox items to process in a more detailed way (in memory)
         // currently, the exponential backoff strategy is the only one implemented

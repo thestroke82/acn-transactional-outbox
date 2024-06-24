@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS transactional_outbox (
     completion_date TIMESTAMP WITH TIME ZONE,
     attempts INT NOT NULL,
     event TEXT NOT NULL,
-    last_error TEXT
+    last_error TEXT,
+    group_id VARCHAR(255)
 );
 ```
 

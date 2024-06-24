@@ -8,7 +8,8 @@ public enum OutboxSqlColumns {
     COMPLETION_DATE("completion_date"),
     ATTEMPTS("attempts"),
     EVENT("event"),
-    LAST_ERROR("last_error");
+    LAST_ERROR("last_error"),
+    GROUP_ID("group_id");
 
     private final String columnName;
 
@@ -29,6 +30,7 @@ public enum OutboxSqlColumns {
                 COMPLETION_DATE.getColumnName(),
                 ATTEMPTS.getColumnName(),
                 EVENT.getColumnName(),
-                LAST_ERROR.getColumnName());
+                LAST_ERROR.getColumnName(),
+                GROUP_ID.getColumnName());
     }
 }
