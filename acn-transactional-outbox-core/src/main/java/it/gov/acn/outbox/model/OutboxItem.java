@@ -1,6 +1,7 @@
 package it.gov.acn.outbox.model;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.UUID;
 
 public class OutboxItem {
@@ -12,6 +13,8 @@ public class OutboxItem {
     private int attempts;
     private String event;
     private String lastError;
+
+    private String groupId;
 
     public UUID getId() {
         return id;
@@ -76,4 +79,8 @@ public class OutboxItem {
     public void setLastError(String lastError) {
         this.lastError = lastError;
     }
+
+    public String getGroupId() { return groupId; }
+
+    public void setGroupId(String groupId) { this.groupId = groupId; }
 }
