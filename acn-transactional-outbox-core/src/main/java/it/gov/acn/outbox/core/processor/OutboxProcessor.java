@@ -1,20 +1,16 @@
 package it.gov.acn.outbox.core.processor;
 
 import it.gov.acn.outbox.core.observability.OutboxMetricsCollector;
+import it.gov.acn.outbox.model.OutboxItem;
+import it.gov.acn.outbox.model.Sort;
 import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.provider.LockingProvider;
-import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
-import it.gov.acn.outbox.model.Sort;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Instant;
+import java.util.List;
 
 public class OutboxProcessor {
     private final Logger logger = LoggerFactory.getLogger(OutboxProcessor.class);
