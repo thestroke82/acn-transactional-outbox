@@ -16,6 +16,9 @@ import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.outbox.provider.LockingProvider;
 import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.provider.OutboxItemHandlerProvider;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -78,6 +81,137 @@ public class OutboxProcessorTest {
         outboxProcessor.process();
         verify(dataProvider, times(1)).find(anyBoolean(), anyInt(), any());
         verify(outboxItemHandlerProvider, times(1)).handle(outboxItem);
+    }
+
+    @Test
+    public void given_outstanding_items_with_group_ids_when_process_then_verify_handle_them() {
+        var outboxItem1 = new OutboxItem();
+        outboxItem1.setGroupId("group1");
+        outboxItem1.setCreationDate(Instant.now().minus(5, ChronoUnit.MINUTES));
+        var outboxItem2 = new OutboxItem();
+        outboxItem2.setGroupId("group1");
+        outboxItem2.setCreationDate(Instant.now().minus(10, ChronoUnit.MINUTES));
+        var outboxItem3 = new OutboxItem();
+        outboxItem3.setGroupId("group2");
+        outboxItem3.setCreationDate(Instant.now().minus(30, ChronoUnit.MINUTES));
+
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(
+                List.of(outboxItem3, outboxItem2, outboxItem1));
+        outboxProcessor.process();
+        verify(dataProvider, times(1)).find(anyBoolean(), anyInt(), any());
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem1);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem2);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem3);
+    }
+
+    @Test
+    public void given_outstanding_items_with_group_ids_and_failed_when_process_then_verify_handle_them() {
+        var outboxItem1 = new OutboxItem();
+        outboxItem1.setGroupId("group1");
+        outboxItem1.setCreationDate(Instant.now().minus(5, ChronoUnit.MINUTES));
+        var outboxItem2 = new OutboxItem();
+        outboxItem2.setGroupId("group1");
+        outboxItem2.setCreationDate(Instant.now().minus(10, ChronoUnit.MINUTES));
+        outboxItem2.setAttempts(1);
+        outboxItem2.setLastAttemptDate(Instant.now().plus(10, ChronoUnit.HOURS));
+        var outboxItem3 = new OutboxItem();
+        outboxItem3.setGroupId("group2");
+        outboxItem3.setCreationDate(Instant.now().minus(30, ChronoUnit.MINUTES));
+
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(
+                List.of(outboxItem3, outboxItem2, outboxItem1));
+        outboxProcessor.process();
+        verify(dataProvider, times(1)).find(anyBoolean(), anyInt(), any());
+        verify(outboxItemHandlerProvider, times(0)).handle(outboxItem1);
+        verify(outboxItemHandlerProvider, times(0)).handle(outboxItem2);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem3);
+    }
+
+    @Test
+    public void given_outstanding_items_with_group_ids_and_null_group_and_failed_when_process_then_verify_handle_them() {
+        var outboxItem1 = new OutboxItem();
+        outboxItem1.setGroupId("group1");
+        outboxItem1.setCreationDate(Instant.now().minus(5, ChronoUnit.MINUTES));
+        var outboxItem2 = new OutboxItem();
+        outboxItem2.setGroupId("group1");
+        outboxItem2.setCreationDate(Instant.now().minus(10, ChronoUnit.MINUTES));
+        outboxItem2.setAttempts(1);
+        outboxItem2.setLastAttemptDate(Instant.now().plus(10, ChronoUnit.HOURS));
+        var outboxItem3 = new OutboxItem();
+        outboxItem3.setGroupId("group2");
+        outboxItem3.setCreationDate(Instant.now().minus(30, ChronoUnit.MINUTES));
+        var outboxItem4 = new OutboxItem();
+        outboxItem4.setGroupId(null);
+        outboxItem4.setCreationDate(Instant.now().minus(30, ChronoUnit.MINUTES));
+        var outboxItem5 = new OutboxItem();
+        outboxItem5.setGroupId(null);
+        outboxItem5.setAttempts(1);
+        outboxItem5.setLastAttemptDate(Instant.now().plus(10, ChronoUnit.HOURS));
+        outboxItem5.setCreationDate(Instant.now().minus(60, ChronoUnit.MINUTES));
+
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(
+                List.of(outboxItem5, outboxItem3, outboxItem4, outboxItem2, outboxItem1));
+        outboxProcessor.process();
+        verify(dataProvider, times(1)).find(anyBoolean(), anyInt(), any());
+        verify(outboxItemHandlerProvider, times(0)).handle(outboxItem1);
+        verify(outboxItemHandlerProvider, times(0)).handle(outboxItem2);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem3);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem4);
+        verify(outboxItemHandlerProvider, times(0)).handle(outboxItem5);
+    }
+
+    @Test
+    public void given_outstanding_items_with_non_null_group_when_process_and_exception_then_verify_handle_only_firsts() {
+        var outboxItem1 = new OutboxItem();
+        outboxItem1.setGroupId("group1");
+        outboxItem1.setCreationDate(Instant.now().minus(5, ChronoUnit.MINUTES));
+        var outboxItem2 = new OutboxItem();
+        outboxItem2.setGroupId("group1");
+        outboxItem2.setCreationDate(Instant.now().minus(10, ChronoUnit.MINUTES));
+        var outboxItem3 = new OutboxItem();
+        outboxItem3.setGroupId("group1");
+        outboxItem3.setCreationDate(Instant.now().minus(30, ChronoUnit.MINUTES));
+
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(
+                List.of(outboxItem3, outboxItem2, outboxItem1));
+
+        when(outboxConfiguration.getMaxAttempts()).thenReturn(10);
+        outboxProcessor = OutboxProcessorFactory.createOutboxProcessor(outboxConfiguration);
+        doThrow(new IllegalStateException()).when(outboxItemHandlerProvider).handle(outboxItem2);
+
+        outboxProcessor.process();
+
+        verify(dataProvider, times(1)).find(anyBoolean(), anyInt(), any());
+        verify(outboxItemHandlerProvider, times(0)).handle(outboxItem1);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem2);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem3);
+    }
+
+    @Test
+    public void given_outstanding_items_with_non_null_group_when_process_and_dlq_then_verify_handle_all() {
+        var outboxItem1 = new OutboxItem();
+        outboxItem1.setGroupId("group1");
+        outboxItem1.setCreationDate(Instant.now().minus(5, ChronoUnit.MINUTES));
+        var outboxItem2 = new OutboxItem();
+        outboxItem2.setGroupId("group1");
+        outboxItem2.setCreationDate(Instant.now().minus(10, ChronoUnit.MINUTES));
+        var outboxItem3 = new OutboxItem();
+        outboxItem3.setGroupId("group1");
+        outboxItem3.setCreationDate(Instant.now().minus(30, ChronoUnit.MINUTES));
+
+        when(dataProvider.find(anyBoolean(), anyInt(), any())).thenReturn(
+                List.of(outboxItem3, outboxItem2, outboxItem1));
+
+        when(outboxConfiguration.getMaxAttempts()).thenReturn(1);
+        outboxProcessor = OutboxProcessorFactory.createOutboxProcessor(outboxConfiguration);
+        doThrow(new IllegalStateException()).when(outboxItemHandlerProvider).handle(outboxItem2);
+
+        outboxProcessor.process();
+
+        verify(dataProvider, times(1)).find(anyBoolean(), anyInt(), any());
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem1);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem2);
+        verify(outboxItemHandlerProvider, times(1)).handle(outboxItem3);
     }
 
     @Test

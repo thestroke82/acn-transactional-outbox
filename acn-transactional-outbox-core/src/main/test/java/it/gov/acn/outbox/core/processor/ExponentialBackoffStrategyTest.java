@@ -33,7 +33,7 @@ public class ExponentialBackoffStrategyTest {
 
     @Test
     public void given_no_outstanding_items_when_execute_then_return_empty() {
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(Collections.emptyList());
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(Collections.emptyList());
         assertTrue(result.isEmpty());
     }
 
@@ -42,7 +42,7 @@ public class ExponentialBackoffStrategyTest {
         OutboxItem outboxItem = new OutboxItem();
         outboxItem.setAttempts(0);
         outboxItem.setLastAttemptDate(Instant.now().minusSeconds(10));
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertEquals(1, result.size());
     }
 
@@ -51,7 +51,7 @@ public class ExponentialBackoffStrategyTest {
         OutboxItem outboxItem = new OutboxItem();
         outboxItem.setAttempts(1);
         outboxItem.setLastAttemptDate(Instant.now());
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertTrue(result.isEmpty());
     }
 
@@ -65,7 +65,7 @@ public class ExponentialBackoffStrategyTest {
             Instant.now().minus(backoffBase, ChronoUnit.MINUTES)
                 .minus(1, ChronoUnit.SECONDS));
 
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertEquals(1, result.size());
     }
 
@@ -80,7 +80,7 @@ public class ExponentialBackoffStrategyTest {
             Instant.now().minus(backoffBase, ChronoUnit.MINUTES)
                 .plus(10, ChronoUnit.SECONDS));
 
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertEquals(0, result.size());
     }
 
@@ -94,7 +94,7 @@ public class ExponentialBackoffStrategyTest {
             Instant.now().minus(calculateBackoff(outboxItem.getAttempts(),backoffBase), ChronoUnit.MINUTES)
                 .minus(1, ChronoUnit.SECONDS));
 
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertEquals(1, result.size());
     }
 
@@ -108,13 +108,13 @@ public class ExponentialBackoffStrategyTest {
             Instant.now().minus(calculateBackoff(outboxItem.getAttempts(),backoffBase), ChronoUnit.MINUTES)
                 .plus(10, ChronoUnit.SECONDS));
 
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertEquals(0, result.size());
     }
 
     @Test
     public void given_null_list_when_execute_then_return_null() {
-        assertNull(exponentialBackoffStrategy.execute(null));
+        assertNull(exponentialBackoffStrategy.filter((List<OutboxItem>)null));
     }
 
     @Test
@@ -122,7 +122,7 @@ public class ExponentialBackoffStrategyTest {
         OutboxItem outboxItem = new OutboxItem();
         outboxItem.setAttempts(1);
         outboxItem.setLastAttemptDate(null);
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertEquals(1, result.size());
     }
 
@@ -131,7 +131,7 @@ public class ExponentialBackoffStrategyTest {
         OutboxItem outboxItem = new OutboxItem();
         outboxItem.setAttempts(-1);
         outboxItem.setLastAttemptDate(Instant.now().minusSeconds(10));
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertEquals(1, result.size());
     }
 
@@ -140,7 +140,7 @@ public class ExponentialBackoffStrategyTest {
         OutboxItem outboxItem = new OutboxItem();
         outboxItem.setAttempts(1);
         outboxItem.setLastAttemptDate(Instant.now().plusSeconds(10));
-        List<OutboxItem> result = exponentialBackoffStrategy.execute(List.of(outboxItem));
+        List<OutboxItem> result = exponentialBackoffStrategy.filter(List.of(outboxItem));
         assertTrue(result.isEmpty());
     }
 
