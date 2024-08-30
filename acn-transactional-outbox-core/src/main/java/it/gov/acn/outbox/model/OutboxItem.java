@@ -1,86 +1,90 @@
 package it.gov.acn.outbox.model;
 
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.UUID;
 
 public class OutboxItem {
-    private UUID id;
-    private String eventType;
-    private Instant creationDate;
-    private Instant lastAttemptDate;
-    private Instant completionDate;
-    private int attempts;
-    private String event;
-    private String lastError;
 
-    private String groupId;
+  private UUID id;
+  private String eventType;
+  private Instant creationDate;
+  private Instant lastAttemptDate;
+  private Instant completionDate;
+  private int attempts;
+  private String event;
+  private String lastError;
 
-    public UUID getId() {
-        return id;
-    }
+  private String groupId;
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+  public UUID getId() {
+    return id;
+  }
 
-    public String getEventType() {
-        return eventType;
-    }
+  public void setId(UUID id) {
+    this.id = id;
+  }
 
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
-    }
+  public String getEventType() {
+    return eventType;
+  }
 
-    public Instant getCreationDate() {
-        return creationDate;
-    }
+  public void setEventType(String eventType) {
+    this.eventType = eventType;
+  }
 
-    public void setCreationDate(Instant creationDate) {
-        this.creationDate = creationDate;
-    }
+  public Instant getCreationDate() {
+    return creationDate;
+  }
 
-    public Instant getLastAttemptDate() {
-        return lastAttemptDate;
-    }
+  public void setCreationDate(Instant creationDate) {
+    this.creationDate = creationDate;
+  }
 
-    public void setLastAttemptDate(Instant lastAttemptDate) {
-        this.lastAttemptDate = lastAttemptDate;
-    }
+  public Instant getLastAttemptDate() {
+    return lastAttemptDate;
+  }
 
-    public Instant getCompletionDate() {
-        return completionDate;
-    }
+  public void setLastAttemptDate(Instant lastAttemptDate) {
+    this.lastAttemptDate = lastAttemptDate;
+  }
 
-    public void setCompletionDate(Instant completionDate) {
-        this.completionDate = completionDate;
-    }
+  public Instant getCompletionDate() {
+    return completionDate;
+  }
 
-    public int getAttempts() {
-        return attempts;
-    }
+  public void setCompletionDate(Instant completionDate) {
+    this.completionDate = completionDate;
+  }
 
-    public void setAttempts(int attempts) {
-        this.attempts = attempts;
-    }
+  public int getAttempts() {
+    return attempts;
+  }
 
-    public String getEvent() {
-        return event;
-    }
+  public void setAttempts(int attempts) {
+    this.attempts = attempts;
+  }
 
-    public void setEvent(String event) {
-        this.event = event;
-    }
+  public String getEvent() {
+    return event;
+  }
 
-    public String getLastError() {
-        return lastError;
-    }
+  public void setEvent(String event) {
+    this.event = event;
+  }
 
-    public void setLastError(String lastError) {
-        this.lastError = lastError;
-    }
+  public String getLastError() {
+    return lastError;
+  }
 
-    public String getGroupId() { return groupId; }
+  public void setLastError(String lastError) {
+    this.lastError = lastError;
+  }
 
-    public void setGroupId(String groupId) { this.groupId = groupId; }
+  public String getGroupId() {
+    return groupId;
+  }
+
+  public void setGroupId(String groupId) {
+    this.groupId = groupId;
+  }
 }

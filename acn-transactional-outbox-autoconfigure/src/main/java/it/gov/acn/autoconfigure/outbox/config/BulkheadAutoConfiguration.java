@@ -2,9 +2,7 @@ package it.gov.acn.autoconfigure.outbox.config;
 
 import it.gov.acn.autoconfigure.outbox.config.OutboxProperties.EnvPropertyKeys;
 import it.gov.acn.autoconfigure.outbox.etc.PropertiesHelper;
-
 import java.util.Optional;
-
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -12,6 +10,7 @@ import org.springframework.core.env.Environment;
 
 @AutoConfiguration
 public class BulkheadAutoConfiguration {
+
   @Bean
   public OutboxProperties transactionalOutboxProperties(
       Environment environment

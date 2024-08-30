@@ -15,29 +15,30 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class MockKafkaService implements OutboxItemHandlerProvider {
-    private final KafkaTemplate kafkaTemplate;
-    private final ObjectMapper jacksonObjectMapper;
 
-    @Override
-    public void handle(OutboxItem outboxItem) {
-        if(outboxItem==null){
-            return;
-        }
-        if(outboxItem.getEventType().equals(ConstituencyCreatedEvent.EVENT_TYPE_LITERAL)) {
-          ConstituencyCreatedEvent event;
-          try {
-            event = jacksonObjectMapper.readValue(outboxItem.getEvent(), ConstituencyCreatedEvent.class);
-          } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-          }
-          MockKafkaBrokerMessage mockKafkaBrokerMessage = MockKafkaBrokerMessage.builder()
-                  .id(UUID.fromString(event.getEventId()))
-                  .creationDate(Instant.now())
-                  .payload(outboxItem.getEvent())
-                  .build();
-          kafkaTemplate.send(mockKafkaBrokerMessage);
-        }else{
-            throw  new UnsupportedOperationException("Event type not supported: "+outboxItem.getEventType());
-        }
+  private final KafkaTemplate kafkaTemplate;
+  private final ObjectMapper jacksonObjectMapper;
+
+  @Override
+  public void handle(OutboxItem outboxItem) {
+    if (outboxItem == null) {
+      return;
     }
+    if (outboxItem.getEventType().equals(ConstituencyCreatedEvent.EVENT_TYPE_LITERAL)) {
+      ConstituencyCreatedEvent event;
+      try {
+        event = jacksonObjectMapper.readValue(outboxItem.getEvent(), ConstituencyCreatedEvent.class);
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
+      MockKafkaBrokerMessage mockKafkaBrokerMessage = MockKafkaBrokerMessage.builder()
+          .id(UUID.fromString(event.getEventId()))
+          .creationDate(Instant.now())
+          .payload(outboxItem.getEvent())
+          .build();
+      kafkaTemplate.send(mockKafkaBrokerMessage);
+    } else {
+      throw new UnsupportedOperationException("Event type not supported: " + outboxItem.getEventType());
+    }
+  }
 }

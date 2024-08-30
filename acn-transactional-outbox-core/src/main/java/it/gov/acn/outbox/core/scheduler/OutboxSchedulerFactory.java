@@ -2,7 +2,6 @@ package it.gov.acn.outbox.core.scheduler;
 
 import it.gov.acn.outbox.core.configuration.OutboxConfiguration;
 import it.gov.acn.outbox.core.processor.OutboxProcessor;
-import it.gov.acn.outbox.core.scheduler.OutboxScheduler;
 
 public class OutboxSchedulerFactory {
 

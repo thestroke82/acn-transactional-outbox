@@ -12,6 +12,7 @@ import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.core.SimpleLock;
 
 public class SchedlockLockProvider implements LockingProvider {
+
   private final List<SimpleLock> activeLocks =
       Collections.synchronizedList(new ArrayList<>());
   private final LockProvider lockProvider;
@@ -31,7 +32,7 @@ public class SchedlockLockProvider implements LockingProvider {
 
   @Override
   public void release(Object lock) {
-    if(lock instanceof SimpleLock simpleLock){
+    if (lock instanceof SimpleLock simpleLock) {
       activeLocks.remove(simpleLock);
       simpleLock.unlock();
     }

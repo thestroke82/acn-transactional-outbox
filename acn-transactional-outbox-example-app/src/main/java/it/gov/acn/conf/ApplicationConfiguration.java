@@ -11,18 +11,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ApplicationConfiguration {
 
-    @Value("${spring.application.name:example-app}")
-    private String applicationName;
+  @Value("${spring.application.name:example-app}")
+  private String applicationName;
 
-    @Bean
-    ObjectMapper jacksonObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        return objectMapper;
-    }
+  @Bean
+  ObjectMapper jacksonObjectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
+    return objectMapper;
+  }
 
-    @Bean
-    public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
-        return registry -> registry.config().commonTags("application", this.applicationName);
-    }
+  @Bean
+  public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
+    return registry -> registry.config().commonTags("application", this.applicationName);
+  }
 }

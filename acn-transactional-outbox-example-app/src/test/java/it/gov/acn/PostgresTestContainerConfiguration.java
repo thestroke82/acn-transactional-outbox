@@ -13,25 +13,25 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("test")
 public class PostgresTestContainerConfiguration {
 
-    @Container
-    public static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
-        .withDatabaseName("testdb")
-        .withUsername("testuser")
-        .withPassword("testpass");
+  @Container
+  public static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
+      .withDatabaseName("testdb")
+      .withUsername("testuser")
+      .withPassword("testpass");
 
-    static {
-        postgresContainer.start();
-        System.out.println("PostgreSQL container started with URL: " + postgresContainer.getJdbcUrl());
-    }
+  static {
+    postgresContainer.start();
+    System.out.println("PostgreSQL container started with URL: " + postgresContainer.getJdbcUrl());
+  }
 
-    @DynamicPropertySource
-    static void registerPgProperties(DynamicPropertyRegistry registry) {
-        String jdbcUrlPart = postgresContainer.getJdbcUrl();
-        String jdbcUrlFull = jdbcUrlPart + "&TC_DAEMON=true";
+  @DynamicPropertySource
+  static void registerPgProperties(DynamicPropertyRegistry registry) {
+    String jdbcUrlPart = postgresContainer.getJdbcUrl();
+    String jdbcUrlFull = jdbcUrlPart + "&TC_DAEMON=true";
 
-        registry.add("spring.datasource.url", () -> jdbcUrlFull);
-        registry.add("spring.datasource.driver-class-name", org.postgresql.Driver.class::getName);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
-    }
+    registry.add("spring.datasource.url", () -> jdbcUrlFull);
+    registry.add("spring.datasource.driver-class-name", org.postgresql.Driver.class::getName);
+    registry.add("spring.datasource.username", postgresContainer::getUsername);
+    registry.add("spring.datasource.password", postgresContainer::getPassword);
+  }
 }

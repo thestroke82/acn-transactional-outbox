@@ -11,12 +11,9 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.env.Environment;
 
 /**
- * This class is responsible for validating the context requirements for the Transactional Outbox Starter.
- * Conditions:
- *  - The properties are valid
- *  - A DataSource is present
- *  - A TransactionManager is present
- *  - The outbox table is present and valid
+ * This class is responsible for validating the context requirements for the Transactional Outbox Starter. Conditions: -
+ * The properties are valid - A DataSource is present - A TransactionManager is present - The outbox table is present
+ * and valid
  */
 public class ContextRequirementsValidator {
 
@@ -51,7 +48,7 @@ public class ContextRequirementsValidator {
   }
 
   public boolean validate() {
-    if(valid!=null){
+    if (valid != null) {
       return valid;
     }
     List<String> problems = new ArrayList<>();
@@ -62,7 +59,7 @@ public class ContextRequirementsValidator {
       }
     }
     valid = problems.isEmpty();
-    if(!valid){
+    if (!valid) {
       StringBuilder message = new StringBuilder("Transactional Outbox Starter configuration is not valid: ");
       problems.forEach(problem -> message.append(problem).append(", "));
       logger.error(message.toString());

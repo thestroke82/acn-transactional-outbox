@@ -8,6 +8,7 @@ import it.gov.acn.outbox.core.observability.OutboxMetricsCollector;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class OutboxPrometheusExposer implements Observer {
+
   private final OutboxMetricsCollector collector;
 
   public OutboxPrometheusExposer(MeterRegistry meterRegistry) {
@@ -27,12 +28,12 @@ public class OutboxPrometheusExposer implements Observer {
 
   public void initialize(MeterRegistry meterRegistry) {
     this.observationStartGauge = Gauge.builder("outbox.observation_start",
-            ()-> collector.getObservationStart().toEpochMilli())
+            () -> collector.getObservationStart().toEpochMilli())
         .description("Start time of the observation")
         .register(meterRegistry);
 
     this.lastObservationGaugeValue = new AtomicLong(System.currentTimeMillis());
-    this.lastObservationGauge = Gauge.builder("outbox.last_observation",lastObservationGaugeValue::get)
+    this.lastObservationGauge = Gauge.builder("outbox.last_observation", lastObservationGaugeValue::get)
         .description("Last time some metric was collected")
         .register(meterRegistry);
 

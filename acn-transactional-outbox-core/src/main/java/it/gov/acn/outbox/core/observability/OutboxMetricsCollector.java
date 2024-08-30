@@ -2,7 +2,8 @@ package it.gov.acn.outbox.core.observability;
 
 import java.time.Instant;
 
-public class OutboxMetricsCollector extends Observable{
+public class OutboxMetricsCollector extends Observable {
+
   private static final OutboxMetricsCollector instance;
 
   private Instant observationStart;
@@ -11,12 +12,14 @@ public class OutboxMetricsCollector extends Observable{
   private long failures;
   private long dlq;
 
-  private OutboxMetricsCollector() {}
+  private OutboxMetricsCollector() {
+  }
 
   static {
     instance = new OutboxMetricsCollector();
     initialize();
   }
+
   public static OutboxMetricsCollector getInstance() {
     return instance;
   }
@@ -25,14 +28,17 @@ public class OutboxMetricsCollector extends Observable{
     this.queued = this.safeIncrement(this.queued);
     super.notifyObservers();
   }
+
   public void incrementSuccesses() {
     this.successes = this.safeIncrement(this.successes);
     super.notifyObservers();
   }
+
   public void incrementFailures() {
     this.failures = this.safeIncrement(this.failures);
     super.notifyObservers();
   }
+
   public void incrementDlq() {
     this.dlq = this.safeIncrement(this.dlq);
     super.notifyObservers();

@@ -15,7 +15,7 @@ public class PropertiesHelper {
     return Optional.ofNullable(property);
   }
 
-  public static  Optional<Long> getLongProperty(String key, Environment environment) {
+  public static Optional<Long> getLongProperty(String key, Environment environment) {
     String property = environment.getProperty(key);
     try {
       return Optional.ofNullable(property).map(Long::parseLong);
@@ -23,7 +23,8 @@ public class PropertiesHelper {
       return Optional.empty();
     }
   }
-  public static  Optional<Integer> getIntegerProperty(String key, Environment environment) {
+
+  public static Optional<Integer> getIntegerProperty(String key, Environment environment) {
     String property = environment.getProperty(key);
     try {
       return Optional.ofNullable(property).map(Integer::parseInt);

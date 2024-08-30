@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class MockKafkaTemplate implements KafkaTemplate{
+public class MockKafkaTemplate implements KafkaTemplate {
 
   private final MockKafkaBrokerRepository mockKafkaBrokerRepository;
 

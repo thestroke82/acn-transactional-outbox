@@ -10,9 +10,9 @@ import it.gov.acn.integration.KafkaTemplate;
 import it.gov.acn.model.Constituency;
 import it.gov.acn.model.ConstituencyCreatedEvent;
 import it.gov.acn.model.MockKafkaBrokerMessage;
-import it.gov.acn.outbox.provider.DataProvider;
-import it.gov.acn.outbox.model.OutboxItem;
 import it.gov.acn.outbox.core.scheduler.OutboxScheduler;
+import it.gov.acn.outbox.model.OutboxItem;
+import it.gov.acn.outbox.provider.DataProvider;
 import it.gov.acn.repository.ConstituencyRepository;
 import it.gov.acn.repository.MockKafkaBrokerRepository;
 import it.gov.acn.service.ConstituencyService;
@@ -49,7 +49,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
     "logging.level.it.gov.acn=TRACE"
 })
 @ExtendWith(MockitoExtension.class)
-public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfiguration{
+public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfiguration {
+
   private final long fixedDelay = 3000;
   private final int backoffBase = 1;
 
@@ -63,7 +64,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
 
   @SpyBean
   private MockKafkaBrokerRepository mockKafkaBrokerRepository;
-  
+
   @SpyBean
   private KafkaTemplate kafkaTemplate;
 
@@ -76,24 +77,25 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
 
   @AfterEach
   public void afterEach() {
-    jdbcTemplate.execute("TRUNCATE TABLE "+ DefaultConfiguration.TABLE_NAME);
+    jdbcTemplate.execute("TRUNCATE TABLE " + DefaultConfiguration.TABLE_NAME);
     mockKafkaBrokerRepository.deleteAll();
     constituencyRepository.deleteAll();
   }
 
   @Test
-  void when_saveConstituency_then_scheduler_happy_path(){
+  void when_saveConstituency_then_scheduler_happy_path() {
     Constituency constituency = TestUtils.createTestConstituency();
-    constituencyService.saveConstituency(constituency);    Awaitility.await()
+    constituencyService.saveConstituency(constituency);
+    Awaitility.await()
 
-        .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
+        .atMost(fixedDelay + 500, TimeUnit.MILLISECONDS)
         .untilAsserted(() ->
             Mockito.verify(mockKafkaBrokerRepository, Mockito.times(1)).save(Mockito.any())
         );
   }
 
   @Test
-  void when_process_outbox_throws_exception_then_scheduling_continues(){
+  void when_process_outbox_throws_exception_then_scheduling_continues() {
 
     // simulate the .process() method rethrowing a runtime exception
     Mockito.doThrow(new RuntimeException("Test exception")).when(dataProvider)
@@ -103,7 +105,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
     constituencyService.saveConstituency(constituency);
 
     Awaitility.await()
-        .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
+        .atMost(fixedDelay + 500, TimeUnit.MILLISECONDS)
         .untilAsserted(() ->
             Mockito.verify(dataProvider, Mockito.times(1)).find(Mockito.anyBoolean(), Mockito.anyInt(), Mockito.any())
         );
@@ -137,7 +139,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
     constituencyService.saveConstituency(constituency);
 
     Awaitility.await()
-        .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
+        .atMost(fixedDelay + 500, TimeUnit.MILLISECONDS)
         .untilAsserted(() ->
             Mockito.verify(kafkaTemplate, Mockito.times(1)).send(Mockito.any())
         );
@@ -178,7 +180,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
     constituencyService.saveConstituency(constituency);
 
     Awaitility.await()
-        .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
+        .atMost(fixedDelay + 500, TimeUnit.MILLISECONDS)
         .untilAsserted(() ->
             Mockito.verify(kafkaTemplate, Mockito.times(1)).send(Mockito.any())
         );
@@ -210,7 +212,6 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
     Assertions.assertEquals("Kafka Exception", outboxItem.getLastError());
     Assertions.assertNotNull(outboxItem.getLastAttemptDate());
     Assertions.assertNull(outboxItem.getCompletionDate());
-
 
     Awaitility.await()
         .atMost(calculateBackoff(notCompletedOutboxItems.get(0))
@@ -256,11 +257,10 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
     constituencyService.saveConstituency(constituency3);
 
     Awaitility.await()
-        .atMost(fixedDelay+500, TimeUnit.MILLISECONDS)
+        .atMost(fixedDelay + 500, TimeUnit.MILLISECONDS)
         .untilAsserted(() ->
             Mockito.verify(kafkaTemplate, Mockito.times(3)).send(Mockito.any())
         );
-
 
     List<OutboxItem> notCompletedOutboxItems = findNotCompletedOutboxItems();
     Assertions.assertEquals(3, notCompletedOutboxItems.size());
@@ -308,7 +308,8 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
   }
 
   @Test
-  void given_multiple_constituencies_when_kafka_fails_randomly_then_events_are_received_in_order() throws InterruptedException, JsonProcessingException {
+  void given_multiple_constituencies_when_kafka_fails_randomly_then_events_are_received_in_order()
+      throws InterruptedException, JsonProcessingException {
 
     AtomicInteger failures = new AtomicInteger();
 
@@ -337,7 +338,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
 
     // Use Awaitility to wait the fixed delay plus a little extra time
     Awaitility.await()
-        .atMost(fixedDelay+2000, TimeUnit.MILLISECONDS)
+        .atMost(fixedDelay + 2000, TimeUnit.MILLISECONDS)
         .untilAsserted(() ->
             Mockito.verify(kafkaTemplate, Mockito.times(5)).send(Mockito.any())
         );
@@ -350,7 +351,7 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
         ).toList()
     );
 
-    Assertions.assertEquals(5-failures.get(), messages.size());
+    Assertions.assertEquals(5 - failures.get(), messages.size());
 
     // Reset the mock to simulate a successful send
     Mockito.reset(kafkaTemplate);
@@ -376,11 +377,16 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
     );
 
     // Assert that the messages are in the correct order
-    ConstituencyCreatedEvent event1 = objectMapper.readValue(messages.get(0).getPayload(), ConstituencyCreatedEvent.class);
-    ConstituencyCreatedEvent event2 = objectMapper.readValue(messages.get(1).getPayload(), ConstituencyCreatedEvent.class);
-    ConstituencyCreatedEvent event3 = objectMapper.readValue(messages.get(2).getPayload(), ConstituencyCreatedEvent.class);
-    ConstituencyCreatedEvent event4 = objectMapper.readValue(messages.get(3).getPayload(), ConstituencyCreatedEvent.class);
-    ConstituencyCreatedEvent event5 = objectMapper.readValue(messages.get(4).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event1 =
+        objectMapper.readValue(messages.get(0).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event2 =
+        objectMapper.readValue(messages.get(1).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event3 =
+        objectMapper.readValue(messages.get(2).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event4 =
+        objectMapper.readValue(messages.get(3).getPayload(), ConstituencyCreatedEvent.class);
+    ConstituencyCreatedEvent event5 =
+        objectMapper.readValue(messages.get(4).getPayload(), ConstituencyCreatedEvent.class);
 
     Assertions.assertEquals(constituency1.getId(), event1.getPayload().getId());
     Assertions.assertEquals(constituency2.getId(), event2.getPayload().getId());
@@ -390,9 +396,9 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
   }
 
 
-  private List<MockKafkaBrokerMessage> oderByOriginalEventCreationDate(List<MockKafkaBrokerMessage> messages){
+  private List<MockKafkaBrokerMessage> oderByOriginalEventCreationDate(List<MockKafkaBrokerMessage> messages) {
     List<MockKafkaBrokerMessage> mutable = new ArrayList<>(messages);
-    mutable.sort((a,b)->{
+    mutable.sort((a, b) -> {
       try {
         ConstituencyCreatedEvent eventA = objectMapper.readValue(a.getPayload(), ConstituencyCreatedEvent.class);
         ConstituencyCreatedEvent eventB = objectMapper.readValue(b.getPayload(), ConstituencyCreatedEvent.class);
@@ -405,15 +411,17 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
     return mutable;
   }
 
-  private List<OutboxItem> findAllOutboxItems(){
+  private List<OutboxItem> findAllOutboxItems() {
     List<OutboxItem> ret = findCompletedOutboxItems();
     ret.addAll(findNotCompletedOutboxItems());
     return ret;
   }
-  private List<OutboxItem> findCompletedOutboxItems(){
+
+  private List<OutboxItem> findCompletedOutboxItems() {
     return this.dataProvider.find(true, Integer.MAX_VALUE);
   }
-  private List<OutboxItem> findNotCompletedOutboxItems(){
+
+  private List<OutboxItem> findNotCompletedOutboxItems() {
     return this.dataProvider.find(false, Integer.MAX_VALUE);
   }
 
@@ -422,22 +430,24 @@ public class OutboxSchedulerIntegrationTest extends PostgresTestContainerConfigu
         Math.pow(backoffBase, item.getAttempts()));
   }
 
-  private String outboxItemToString(OutboxItem item){
-    if(item==null){
+  private String outboxItemToString(OutboxItem item) {
+    if (item == null) {
       return null;
     }
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss:SSS");
     return "OutboxItem{" +
-        "id=" + item.getId() +
-        ", eventType='" + item.getEventType() + '\'' +
-        ", creationDate=" + (item.getCreationDate()!=null? getFormattedInstant(item.getCreationDate()): "null") +
-        ", lastAttemptDate=" + (item.getLastAttemptDate()!=null? getFormattedInstant(item.getLastAttemptDate()): "null") +
-        ", completionDate=" + (item.getCompletionDate()!=null? getFormattedInstant(item.getCompletionDate()): "null") +
-        ", attempts=" + item.getAttempts() +
-        '}';
+           "id=" + item.getId() +
+           ", eventType='" + item.getEventType() + '\'' +
+           ", creationDate=" + (item.getCreationDate() != null ? getFormattedInstant(item.getCreationDate()) : "null") +
+           ", lastAttemptDate=" + (item.getLastAttemptDate() != null ? getFormattedInstant(item.getLastAttemptDate())
+        : "null") +
+           ", completionDate=" + (item.getCompletionDate() != null ? getFormattedInstant(item.getCompletionDate())
+        : "null") +
+           ", attempts=" + item.getAttempts() +
+           '}';
   }
 
-  private String getFormattedInstant(Instant instant){
+  private String getFormattedInstant(Instant instant) {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
         .withZone(ZoneId.of("Europe/Rome"));
     return formatter.format(instant);

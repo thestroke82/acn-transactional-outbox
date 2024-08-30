@@ -7,12 +7,15 @@ import java.util.UUID;
 
 public interface DataProvider {
 
-    List<OutboxItem> find(boolean completed, int maxAttempts);
-    List<OutboxItem> find(boolean completed, int maxAttempts, Sort sort);
-    OutboxItem findById(UUID id);
-    void save(OutboxItem item);
-    void update(OutboxItem item);
+  List<OutboxItem> find(boolean completed, int maxAttempts);
 
+  List<OutboxItem> find(boolean completed, int maxAttempts, Sort sort);
+
+  OutboxItem findById(UUID id);
+
+  void save(OutboxItem item);
+
+  void update(OutboxItem item);
 
 
 }

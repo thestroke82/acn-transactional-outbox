@@ -6,14 +6,15 @@ import it.gov.acn.outbox.provider.SerializationProvider;
 
 public class JacksonSerializationProvider implements SerializationProvider {
 
-    private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
-    public JacksonSerializationProvider() {
-        this.objectMapper = new ObjectMapper();
-        this.objectMapper.registerModule(new JavaTimeModule());
-    }
-    @Override
-    public String writeValueAsString(Object value) throws Exception {
-        return this.objectMapper.writeValueAsString(value);
-    }
+  public JacksonSerializationProvider() {
+    this.objectMapper = new ObjectMapper();
+    this.objectMapper.registerModule(new JavaTimeModule());
+  }
+
+  @Override
+  public String writeValueAsString(Object value) throws Exception {
+    return this.objectMapper.writeValueAsString(value);
+  }
 }

@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ConstituencyCreatedEvent{
+public class ConstituencyCreatedEvent {
+
   public static final String EVENT_TYPE_LITERAL = "ConstituencyCreatedEvent";
 
   private final String eventType = EVENT_TYPE_LITERAL;

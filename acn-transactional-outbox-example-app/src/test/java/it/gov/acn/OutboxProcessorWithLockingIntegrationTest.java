@@ -29,7 +29,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
     "acn.outbox.scheduler.enabled=true"
 })
 @ExtendWith(MockitoExtension.class)
-public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestContainerConfiguration{
+public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestContainerConfiguration {
 
   @SpyBean
   private LockingProvider lockingProvider;
@@ -40,7 +40,7 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConta
   private OutboxConfiguration outboxConfiguration;
 
   @PostConstruct
-  public void init(){
+  public void init() {
     outboxProcessor = Mockito.spy(new TestableOutboxProcessor(outboxConfiguration));
   }
 
@@ -66,14 +66,14 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConta
   @Test
   public void given_single_thread_when_process_then_locking_always_succeeds() {
     assert outboxProcessor != null;
-    for(int i=0; i<10; i++){
+    for (int i = 0; i < 10; i++) {
       outboxProcessor.process();
     }
     Mockito.verify(outboxProcessor, Mockito.times(10)).process();
   }
 
   @Test
-  public void given_multiple_threads_when_process_then_only_one_process_at_a_time(){
+  public void given_multiple_threads_when_process_then_only_one_process_at_a_time() {
     assert outboxProcessor != null;
     AtomicInteger criticalSectionCounter = new AtomicInteger(0);
 
@@ -85,7 +85,7 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConta
 
     List<CompletableFuture<?>> futures = new ArrayList<>();
 
-    for(int i=0; i<10; i++){
+    for (int i = 0; i < 10; i++) {
       CompletableFuture<?> future = CompletableFuture.runAsync(() -> outboxProcessor.process());
       futures.add(future);
     }
@@ -97,7 +97,7 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConta
   }
 
   @Test
-  public void given_multiple_threads_with_random_work_times_when_process_then_only_one_process_at_a_time(){
+  public void given_multiple_threads_with_random_work_times_when_process_then_only_one_process_at_a_time() {
     assert outboxProcessor != null;
     AtomicInteger criticalSectionCounter = new AtomicInteger(0);
 
@@ -113,7 +113,7 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConta
     }).when(outboxProcessor).doProcess();
 
     List<CompletableFuture<?>> futures = new ArrayList<>();
-    for(int i=0; i<5; i++){
+    for (int i = 0; i < 5; i++) {
       CompletableFuture<?> future = CompletableFuture.supplyAsync(() -> {
         outboxProcessor.process();
         return null;
@@ -128,25 +128,24 @@ public class OutboxProcessorWithLockingIntegrationTest extends PostgresTestConta
   }
 
   @Test
-  void test_lockProvider(){
+  void test_lockProvider() {
     assert outboxProcessor != null;
     AtomicInteger criticalSectionCounter = new AtomicInteger(0);
 
-
     List<CompletableFuture<?>> futures = new ArrayList<>();
 
-    for(int i=0; i<10; i++){
+    for (int i = 0; i < 10; i++) {
       CompletableFuture<?> future = CompletableFuture.runAsync(() -> {
         LockConfiguration lockConfiguration = new LockConfiguration(
-            Instant.now(),"test-zi", Duration.ofSeconds(10), Duration.ofMillis(100));
+            Instant.now(), "test-zi", Duration.ofSeconds(10), Duration.ofMillis(100));
         Optional<SimpleLock> lock = lockProvider.lock(lockConfiguration);
-        if(lock.isPresent()){
+        if (lock.isPresent()) {
           criticalSectionCounter.incrementAndGet();
           try {
             Thread.sleep(new Random().nextInt(4000));
           } catch (InterruptedException e) {
             throw new RuntimeException(e);
-          }finally{
+          } finally {
             lock.get().unlock();
           }
         }

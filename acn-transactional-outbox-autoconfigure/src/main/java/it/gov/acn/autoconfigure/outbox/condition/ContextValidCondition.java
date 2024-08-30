@@ -6,6 +6,7 @@ import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 public class ContextValidCondition implements ConfigurationCondition {
+
   @Override
   public ConfigurationPhase getConfigurationPhase() {
     return ConfigurationPhase.REGISTER_BEAN;

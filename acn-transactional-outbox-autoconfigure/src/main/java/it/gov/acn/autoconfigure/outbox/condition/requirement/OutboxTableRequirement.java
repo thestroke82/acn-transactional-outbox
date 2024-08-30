@@ -9,11 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 /**
- * 
- * Was supposed to check if the outbox table exists in the database. It is not active at the moment.
- * probably never will be. Consider removing it.
+ * Was supposed to check if the outbox table exists in the database. It is not active at the moment. probably never will
+ * be. Consider removing it.
  */
-public class OutboxTableRequirement implements ContextRequirement{
+public class OutboxTableRequirement implements ContextRequirement {
+
   private final Logger logger = LoggerFactory.getLogger(OutboxTableRequirement.class);
   private final ConfigurableListableBeanFactory beanFactory;
   private final OutboxProperties properties;
@@ -39,6 +39,6 @@ public class OutboxTableRequirement implements ContextRequirement{
 
   @Override
   public Optional<String> getProblem() {
-    return Optional.of("Outbox table '" +this.properties.getTableName()+ "' not found");
+    return Optional.of("Outbox table '" + this.properties.getTableName() + "' not found");
   }
 }

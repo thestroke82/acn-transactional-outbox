@@ -16,13 +16,13 @@ import org.springframework.test.context.ContextConfiguration;
 @SpringBootTest
 @ContextConfiguration(classes = TestApplication.class)
 @Import(IntegrationTestConfig.class)
-public class OutboxAutoconfigurationIntegrationTests{
+public class OutboxAutoconfigurationIntegrationTests {
 
-    @Autowired
-    private DataProvider dataProvider;
+  @Autowired
+  private DataProvider dataProvider;
 
-    @Test
-    public void testDataProvider(){
-        assert dataProvider instanceof PostgresJdbcDataProvider;
-    }
+  @Test
+  public void testDataProvider() {
+    assert dataProvider instanceof PostgresJdbcDataProvider;
+  }
 }

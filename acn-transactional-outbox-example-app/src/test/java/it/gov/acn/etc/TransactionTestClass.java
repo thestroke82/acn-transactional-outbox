@@ -10,11 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Profile("test")
 @RequiredArgsConstructor
 public class TransactionTestClass {
-    private final OutboxEventRecorder outboxEventRecorder;
 
-    @Transactional
-    public void throwExceptionAfterOutboxEventRecord() {
-        this.outboxEventRecorder.recordEvent("{\"test\":\"test\"}", "test");
-        throw new RuntimeException("test");
-    }
+  private final OutboxEventRecorder outboxEventRecorder;
+
+  @Transactional
+  public void throwExceptionAfterOutboxEventRecord() {
+    this.outboxEventRecorder.recordEvent("{\"test\":\"test\"}", "test");
+    throw new RuntimeException("test");
+  }
 }

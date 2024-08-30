@@ -1,36 +1,36 @@
 package it.gov.acn.autoconfigure.outbox.providers.data;
 
 public enum OutboxSqlColumns {
-    ID("id"),
-    EVENT_TYPE("event_type"),
-    CREATION_DATE("creation_date"),
-    LAST_ATTEMPT_DATE("last_attempt_date"),
-    COMPLETION_DATE("completion_date"),
-    ATTEMPTS("attempts"),
-    EVENT("event"),
-    LAST_ERROR("last_error"),
-    GROUP_ID("group_id");
+  ID("id"),
+  EVENT_TYPE("event_type"),
+  CREATION_DATE("creation_date"),
+  LAST_ATTEMPT_DATE("last_attempt_date"),
+  COMPLETION_DATE("completion_date"),
+  ATTEMPTS("attempts"),
+  EVENT("event"),
+  LAST_ERROR("last_error"),
+  GROUP_ID("group_id");
 
-    private final String columnName;
+  private final String columnName;
 
-    OutboxSqlColumns(String columnName) {
-        this.columnName = columnName;
-    }
+  OutboxSqlColumns(String columnName) {
+    this.columnName = columnName;
+  }
 
-    public String getColumnName() {
-        return columnName;
-    }
+  public String getColumnName() {
+    return columnName;
+  }
 
-    public static String getAllColumns() {
-        return String.join(", ",
-                ID.getColumnName(),
-                EVENT_TYPE.getColumnName(),
-                CREATION_DATE.getColumnName(),
-                LAST_ATTEMPT_DATE.getColumnName(),
-                COMPLETION_DATE.getColumnName(),
-                ATTEMPTS.getColumnName(),
-                EVENT.getColumnName(),
-                LAST_ERROR.getColumnName(),
-                GROUP_ID.getColumnName());
-    }
+  public static String getAllColumns() {
+    return String.join(", ",
+        ID.getColumnName(),
+        EVENT_TYPE.getColumnName(),
+        CREATION_DATE.getColumnName(),
+        LAST_ATTEMPT_DATE.getColumnName(),
+        COMPLETION_DATE.getColumnName(),
+        ATTEMPTS.getColumnName(),
+        EVENT.getColumnName(),
+        LAST_ERROR.getColumnName(),
+        GROUP_ID.getColumnName());
+  }
 }
